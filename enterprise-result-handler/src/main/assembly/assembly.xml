@@ -10,6 +10,10 @@
             <directory>src/main/assembly/bin</directory>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
+            <includes>
+                <include>*.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>src/main/assembly/conf</directory>
@@ -18,8 +22,8 @@
         </fileSet>
         <fileSet>
             <directory>src/main/assembly</directory>
-            <!-- 过滤xml文件 -->
             <excludes>
+                <!-- 过滤xml文件 -->
                 <exclude>*.xml</exclude>
             </excludes>
             <outputDirectory></outputDirectory>

@@ -12,24 +12,24 @@ import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 public class CmnConstant {
 
     /**
-     * 默认起始位置
+     * 起始位置
      */
-    public static final int DEFAULT_START_INDEX = Integer.parseInt(PropertiesUtils.getValue("startIndex"));
+    public static final int START_INDEX = Integer.parseInt(PropertiesUtils.getValue("startIndex"));
 
     /**
-     * 默认每页数量
+     * 结束位置
      */
-    public static final int DEFAULT_PAGE_SIZE = Integer.parseInt(PropertiesUtils.getValue("pageSize"));
+    public static final int END_INDEX = Integer.parseInt(PropertiesUtils.getValue("endIndex"));
+
+    /**
+     * 每页数量
+     */
+    public static final int PAGE_SIZE = Integer.parseInt(PropertiesUtils.getValue("pageSize"));
 
     /**
      * 数据库批量更新大小
      */
     public static final int BATCH_SIZE = Integer.parseInt(PropertiesUtils.getValue("batchSize"));
-
-    /**
-     * 国家工商行政管理总局代码：100000
-     */
-    public static final String SAIC_CODE = "100000";
 
     private CmnConstant() {
     }

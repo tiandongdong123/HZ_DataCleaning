@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+    <resultMap id="StandardFieldResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessStandardInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PRIPID" property="pripid" jdbcType="VARCHAR"/>
+        <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="OPFROM" property="opFrom" jdbcType="DATE"/>
+        <result column="OPTO" property="opTo" jdbcType="DATE"/>
+        <result column="HAS_DRSTANDARD" property="hasDrStandard" jdbcType="INTEGER"/>
+        <result column="DRSTANDARD_TYPE_LIST" property="drStandardTypeList" jdbcType="VARCHAR"/>
+        <result column="DRSTANDARD_NUM" property="drStandardNum" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--分页获取标准信息-->
+    <select id="getStandardInfoByPage" resultMap="StandardFieldResultMap">
+        SELECT
+          ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_DRSTANDARD,DRSTANDARD_TYPE_LIST,DRSTANDARD_NUM,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新标准信息-->
+    <update id="updateStandardInfoByKey"
+            parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessStandardInfoBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="hasDrStandard != null">
+                HAS_DRSTANDARD = #{hasDrStandard},
+            </if>
+            <if test="drStandardTypeList != null and drStandardTypeList != ''">
+                DRSTANDARD_TYPE_LIST = #{drStandardTypeList},
+            </if>
+            <if test="drStandardNum != null">
+                DRSTANDARD_NUM = #{drStandardNum},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新标准信息-->
+    <update id="updateBatchStandardInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.hasDrStandard != null">
+                    HAS_DRSTANDARD = #{item.hasDrStandard},
+                </if>
+                <if test="item.drStandardTypeList != null and item.drStandardTypeList != ''">
+                    DRSTANDARD_TYPE_LIST = #{item.drStandardTypeList},
+                </if>
+                <if test="item.drStandardNum != null">
+                    DRSTANDARD_NUM = #{item.drStandardNum},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

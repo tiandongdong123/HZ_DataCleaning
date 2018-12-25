@@ -1,8 +1,11 @@
 package com.wanfang.datacleaning.handler.util.business;
 
+import com.wanfang.datacleaning.handler.model.bo.BusinessEntNameBO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,7 +17,7 @@ import java.util.Map;
  */
 public class BusinessDataUtils {
 
-    private static Map<String, String> baseEntNameInfo = new HashMap<>();
+    private static Map<String, List<BusinessEntNameBO>> baseEntNameInfoMap = new HashMap<>();
 
     private BusinessDataUtils() {
     }
@@ -22,32 +25,47 @@ public class BusinessDataUtils {
     /**
      * 缓存企业(机构)名称信息
      *
-     * @param entName 企业(机构)名称
-     * @param pripid  主体身份代码
+     * @param businessEntNameBOList
      */
-    public static void cacheEntNameInfo(String entName, String pripid) {
-        baseEntNameInfo.put(entName, pripid);
+    public static void cacheEntNameInfo(List<BusinessEntNameBO> businessEntNameBOList) {
+        String entName;
+        List<BusinessEntNameBO> entNameBOList;
+
+        for (BusinessEntNameBO entNameBO : businessEntNameBOList) {
+            // 判断企业名称是否为空
+            if (StringUtils.isBlank(entNameBO.getEntName())) {
+                continue;
+            }
+
+            // 去除空白字符
+            entName = StringUtils.deleteWhitespace(entNameBO.getEntName());
+            if (baseEntNameInfoMap.containsKey(entName)) {
+                baseEntNameInfoMap.get(entName).add(entNameBO);
+            } else {
+                entNameBOList = new LinkedList<>();
+                entNameBOList.add(entNameBO);
+                baseEntNameInfoMap.put(entName, entNameBOList);
+            }
+        }
     }
 
     /**
-     * 获取缓存的企业(机构)名称信息
+     * 获取缓存的企业(机构)名称信息长度
      *
-     * @return Map<String, String>
+     * @return int
      */
-    public static Map<String, String> getCacheEntNameInfo() {
-        return baseEntNameInfo;
+    public static int getCacheEntNameInfoMapSize() {
+        return baseEntNameInfoMap.size();
     }
 
     /**
-     * 通过企业(机构)名称获取缓存的主体身份代码
+     * 通过企业名称获取缓存的企业(机构)名称信息
      *
-     * @param entName 企业(机构)名称
-     * @return String 若无此entName，则返回""
+     * @param entName 企业名称
+     * @return List<BusinessEntNameBO>
      */
-    public static String getCachePripidByEntName(String entName) {
-        String pripid = baseEntNameInfo.get(entName);
-
-        return StringUtils.defaultString(pripid);
+    public static List<BusinessEntNameBO> getCacheEntNameInfoListByEntNmae(String entName) {
+        return baseEntNameInfoMap.get(entName);
     }
 
 }

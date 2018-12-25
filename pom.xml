@@ -19,6 +19,9 @@
         <module>business-capinfo-handler</module>
         <module>business-highnew-handler</module>
         <module>enterprise-result-handler</module>
+        <module>business-uscreditcode-handler</module>
+        <module>business-areainfo-handler</module>
+        <module>business-devzoneinfo-handler</module>
     </modules>
 
     <repositories>

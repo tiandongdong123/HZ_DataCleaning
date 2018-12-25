@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblPatentDao">
+    <resultMap id="BaseProposerNameResultMap" type="com.wanfang.datacleaning.handler.model.bo.PatentProposerNameBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="patent_id" property="patentId" jdbcType="VARCHAR"/>
+        <result column="proposer_name" property="proposerName" jdbcType="LONGVARCHAR"/>
+        <result column="app_date" property="appDate" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--分页获取申请（专利权）人信息-->
+    <select id="getBaseProposerNameInfoByPage" resultMap="BaseProposerNameResultMap">
+        SELECT
+          ID,patent_id, proposer_name,app_date
+        FROM tblPatent
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+</mapper>

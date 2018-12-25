@@ -1,5 +1,7 @@
 package com.wanfang.datacleaning.dao.model.master.bo;
 
+import java.util.Date;
+
 /**
  *    
  *  @Description
@@ -17,6 +19,14 @@ public class BusinessPatentInfoBO {
      * 企业（机构）名称
      */
     private String entName;
+    /**
+     * 经营(驻在)期限自
+     */
+    private Date opFrom;
+    /**
+     * 经营(驻在)期限至
+     */
+    private Date opTo;
     /**
      * 是否拥有专利（0：无专利；1：有专利；）
      */
@@ -48,6 +58,22 @@ public class BusinessPatentInfoBO {
 
     public void setEntName(String entName) {
         this.entName = entName;
+    }
+
+    public Date getOpFrom() {
+        return opFrom;
+    }
+
+    public void setOpFrom(Date opFrom) {
+        this.opFrom = opFrom;
+    }
+
+    public Date getOpTo() {
+        return opTo;
+    }
+
+    public void setOpTo(Date opTo) {
+        this.opTo = opTo;
     }
 
     public Integer getHasPatent() {
@@ -87,6 +113,8 @@ public class BusinessPatentInfoBO {
         return "BusinessPatentInfoBO{" +
                 "id=" + id +
                 ", entName='" + entName + '\'' +
+                ", opFrom=" + opFrom +
+                ", opTo=" + opTo +
                 ", hasPatent=" + hasPatent +
                 ", patentTypeList='" + patentTypeList + '\'' +
                 ", patentNum=" + patentNum +

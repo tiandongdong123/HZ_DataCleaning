@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+
+    <resultMap id="ExtraFieldResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessExtraFieldBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="ENTSTATUS" property="entStatus" jdbcType="VARCHAR"/>
+        <result column="ABUITEM" property="abuItem" jdbcType="VARCHAR"/>
+        <result column="ESDATE" property="esDate" jdbcType="DATE"/>
+        <result column="ESYEAR" property="esYear" jdbcType="INTEGER"/>
+        <result column="ESMONTH" property="esMonth" jdbcType="INTEGER"/>
+        <result column="DOMPRORIGHT" property="domProRight" jdbcType="VARCHAR"/>
+        <result column="HAS_ABUITEM" property="hasAbuItem" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--分页获取拓展字段信息-->
+    <select id="getExtraFieldInfoByPage" resultMap="ExtraFieldResultMap">
+        SELECT
+          ID,ENTNAME,ENTSTATUS,ABUITEM,ESDATE,ESYEAR,ESMONTH,DOMPRORIGHT,HAS_ABUITEM,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新拓展字段信息-->
+    <update id="updateExtraFieldByKey"
+            parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessExtraFieldBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="entStatus != null and entStatus != ''">
+                ENTSTATUS = #{entStatus},
+            </if>
+            <if test="esYear != null">
+                ESYEAR = #{esYear},
+            </if>
+            <if test="esMonth != null">
+                ESMONTH = #{esMonth},
+            </if>
+            <if test="domProRight != null and domProRight != ''">
+                DOMPRORIGHT = #{domProRight},
+            </if>
+            <if test="hasAbuItem != null">
+                HAS_ABUITEM = #{hasAbuItem},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新拓展字段信息-->
+    <update id="updateBatchExtraFieldByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.entStatus != null and item.entStatus != ''">
+                    ENTSTATUS = #{item.entStatus},
+                </if>
+                <if test="item.esYear != null">
+                    ESYEAR = #{item.esYear},
+                </if>
+                <if test="item.esMonth != null">
+                    ESMONTH = #{item.esMonth},
+                </if>
+                <if test="item.domProRight != null and item.domProRight != ''">
+                    DOMPRORIGHT = #{item.domProRight},
+                </if>
+                <if test="item.hasAbuItem != null">
+                    HAS_ABUITEM = #{item.hasAbuItem},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

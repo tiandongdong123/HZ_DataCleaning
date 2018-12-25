@@ -1,5 +1,8 @@
 package com.wanfang.datacleaning.dao.model.master.bo;
 
+
+import java.util.Date;
+
 /**
  *    
  *  @Description
@@ -20,6 +23,10 @@ public class StandardStdTypeBO {
      * 标准类型
      */
     private String standardType;
+    /**
+     * 发布日期
+     */
+    private Date issueDate;
 
     public String getDraftUnit() {
         return draftUnit;
@@ -45,12 +52,21 @@ public class StandardStdTypeBO {
         this.standardType = standardType;
     }
 
+    public Date getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(Date issueDate) {
+        this.issueDate = issueDate;
+    }
+
     @Override
     public String toString() {
         return "StandardStdTypeBO{" +
                 "draftUnit='" + draftUnit + '\'' +
                 ", standardStatus='" + standardStatus + '\'' +
                 ", standardType='" + standardType + '\'' +
+                ", issueDate='" + issueDate + '\'' +
                 '}';
     }
 }

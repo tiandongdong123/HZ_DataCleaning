@@ -1,14 +1,12 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanfang.datacleaning.dao.dao.master.TblBusinessDao;
-import com.wanfang.datacleaning.dao.model.master.bo.BusinessExtraFieldBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
 import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
+import com.wanfang.datacleaning.handler.model.bo.BusinessExtraFieldBO;
 import com.wanfang.datacleaning.handler.service.ExtraFiledService;
 import com.wanfang.datacleaning.handler.util.business.DomPropertyUtils;
-import com.wanfang.datacleaning.handler.util.business.area.AreaCodeUtils;
-import com.wanfang.datacleaning.handler.util.business.area.model.AreaCode;
 import com.wanfang.datacleaning.util.DateUtils;
 import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,12 +46,12 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
     @Override
     public void updateExtraFieldInfo() {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的拓展字段信息开始 ***********");
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的拓展字段信息开始");
 
         // 递归更新拓展字段
-        updateExtraFieldInfoByRecursion(CmnConstant.DEFAULT_START_INDEX, CmnConstant.DEFAULT_PAGE_SIZE);
+        updateExtraFieldInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
 
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的拓展字段信息结束,共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms ***********",
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的拓展字段信息结束,共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
                 (extraFieldInfoUpdSuccessCount + extraFieldInfoUpdFailCount), extraFieldInfoUpdSuccessCount, extraFieldInfoUpdFailCount, System.currentTimeMillis() - startTime);
     }
 
@@ -66,13 +64,14 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
     private void updateExtraFieldInfoByRecursion(int startIndex, int pageSize) {
         int pageNum = startIndex / pageSize + 1;
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页拓展字段信息开始 ***********", pageNum);
+        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页拓展字段信息开始", pageNum);
         List<BusinessExtraFieldBO> extraFieldBOList = tblBusinessDao.getExtraFieldInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页拓展字段信息结束,共查询到【{}】条数据，耗时【{}】ms ***********", pageNum, extraFieldBOList.size(), System.currentTimeMillis() - startTime);
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页拓展字段信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, extraFieldBOList.size(), System.currentTimeMillis() - startTime);
 
         if (extraFieldBOList != null && extraFieldBOList.size() > 0) {
             startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页拓展字段信息开始 ***********", pageNum);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页拓展字段信息开始", pageNum);
             List<BusinessExtraFieldBO> batchList = new LinkedList<>();
             for (int i = 0; i < extraFieldBOList.size(); i++) {
                 batchList.add(extraFieldBOList.get(i));
@@ -87,11 +86,11 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
                     batchList = new LinkedList<>();
                 }
             }
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页拓展字段信息结束,共更新【{}】条数据，耗时【{}】ms ***********", pageNum, extraFieldBOList.size(), System.currentTimeMillis() - startTime);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页拓展字段信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, extraFieldBOList.size(), System.currentTimeMillis() - startTime);
 
             // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (extraFieldBOList.size() == CmnConstant.DEFAULT_PAGE_SIZE) {
-                updateExtraFieldInfoByRecursion(startIndex + pageSize, CmnConstant.DEFAULT_PAGE_SIZE);
+            if (extraFieldBOList.size() == CmnConstant.PAGE_SIZE) {
+                updateExtraFieldInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
             }
         }
     }
@@ -132,24 +131,6 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
             fieldBO.setHasAbuItem(CmnEnum.WhetherFlagEnum.NO.getValue());
         }
 
-        // 省份、市、区
-        String regOrg = fieldBO.getRegOrg();
-        if (StringUtils.isNotBlank(regOrg)) {
-            AreaCode areaCode;
-            if (CmnConstant.SAIC_CODE.equals(regOrg)) {
-                String localAdm = fieldBO.getLocalAdm();
-                areaCode = AreaCodeUtils.getAreaCode(localAdm != null && localAdm.length() == 9 ? localAdm.substring(0, 6) : localAdm);
-            } else {
-                areaCode = AreaCodeUtils.getAreaCode(regOrg.length() == 9 ? regOrg.substring(0, 6) : regOrg);
-            }
-
-            if (areaCode != null) {
-                fieldBO.setProvince(Integer.parseInt(areaCode.getProvinceCode()));
-                fieldBO.setCity(StringUtils.isNotEmpty(areaCode.getCityCode()) ? Integer.parseInt(areaCode.getCityCode()) : null);
-                fieldBO.setArea(StringUtils.isNotEmpty(areaCode.getDistrictCode()) ? Integer.parseInt(areaCode.getDistrictCode()) : null);
-            }
-        }
-
         // 更新时间（10位时间戳）
         fieldBO.setUpdateTime(DateUtils.getCurrentTimeStamp());
 
@@ -163,19 +144,23 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
      * @return boolean
      */
     private boolean updateBatchExtraFieldInfo(List<BusinessExtraFieldBO> extraFieldBOList) {
-        List<BusinessExtraFieldBO> handleExtraFieldBoList = new ArrayList<>();
+        List<BusinessExtraFieldBO> handleList = new ArrayList<>();
         try {
+            long startTime = System.currentTimeMillis();
             for (BusinessExtraFieldBO fieldBO : extraFieldBOList) {
                 if (fieldBO != null) {
-                    handleExtraFieldBoList.add(handleBusinessExtraField(fieldBO));
+                    handleList.add(handleBusinessExtraField(fieldBO));
                 }
             }
-            if (handleExtraFieldBoList.size() > 0) {
-                tblBusinessDao.updateBatchExtraFieldByKey(handleExtraFieldBoList);
+            LoggerUtils.appendInfoLog(logger, "处理【{}】条拓展字段信息共耗时【{}】ms", extraFieldBOList.size(), System.currentTimeMillis() - startTime);
+            startTime = System.currentTimeMillis();
+            if (handleList.size() > 0) {
+                tblBusinessDao.updateBatchExtraFieldByKey(handleList);
             }
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条拓展字段信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
             return true;
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "参数：【{}】，批量更新拓展字段(updateBatchExtraFieldInfo())出现异常：", JSON.toJSONString(handleExtraFieldBoList), e);
+            LoggerUtils.appendErrorLog(logger, "参数：【{}】，updateBatchExtraFieldInfo()出现异常：", JSON.toJSONString(handleList), e);
             return false;
         }
     }
@@ -184,9 +169,12 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
      * 获取企业状态代码
      *
      * @param statusName 企业状态名称
-     * @return String
+     * @return 若匹配不到statusName，则返回statusName
      */
     private String getEntStatusCode(String statusName) {
+        // 去除空白字符
+        statusName = StringUtils.deleteWhitespace(statusName);
+
         if (CmnEnum.EntStatusEnum.DOING_BUSINESS.getValue().equals(statusName)) {
             return CmnEnum.EntStatusEnum.DOING_BUSINESS.getKey();
         } else if (CmnEnum.EntStatusEnum.REVOCATION.getValue().equals(statusName)) {
@@ -197,7 +185,7 @@ public class ExtraFiledServiceImpl implements ExtraFiledService {
             return CmnEnum.EntStatusEnum.MOVING_OUT.getKey();
         }
 
-        return null;
+        return statusName;
     }
 }
 

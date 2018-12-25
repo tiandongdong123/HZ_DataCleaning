@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
     <!--格式化输出：%-5level：级别从左显示5个字符宽度，%d表示日期，%thread表示线程名，%msg：日志消息，%n是换行符-->
-    <property name="LOG_PATTERN" value="%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %logger{50} - %msg%n"/>
+    <property name="LOG_PATTERN" value="%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %logger{50}.%method:%line - %msg%n"/>
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
     <property name="LOG_HOME" value="logs/business-enterpriseResult-handler"/>
     <!--定义应用名称-->
@@ -122,11 +122,74 @@
     </appender>
 
     <!-- 滚动生成task日志文件 -->
-    <appender name="Task_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="taskFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!--滚动策略-->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!--日志文件输出的文件名-->
             <fileNamePattern>${LOG_HOME}/task/${APP_NAME}_task_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成企业成果[专利]日志文件 -->
+    <appender name="patentResultFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/patentResult/${APP_NAME}_run_patentResult_%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成企业成果[标准]日志文件 -->
+    <appender name="stdResultFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/stdResult/${APP_NAME}_run_stdResult_%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成企业成果[成果]日志文件 -->
+    <appender name="cstadResultFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/cstadResult/${APP_NAME}_run_cstadResult_%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
             <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
             <MaxHistory>${MAX_HISTORY}</MaxHistory>
             <!--单文件最大的存储-->
@@ -152,7 +215,16 @@
     <logger name="java.sql.PreparedStatement" level="DEBUG"/>
 
     <logger name="com.wanfang.datacleaning.handler.task" level="INFO" additivity="false">
-        <appender-ref ref="Task_FILE"/>
+        <appender-ref ref="taskFileAppender"/>
+    </logger>
+    <logger name="patentResultLogger" level="INFO" additivity="false">
+        <appender-ref ref="patentResultFileAppender"/>
+    </logger>
+    <logger name="stdResultLogger" level="INFO" additivity="false">
+        <appender-ref ref="stdResultFileAppender"/>
+    </logger>
+    <logger name="cstadResultLogger" level="INFO" additivity="false">
+        <appender-ref ref="cstadResultFileAppender"/>
     </logger>
 
     <!-- 日志输出级别 -->

@@ -1,14 +1,13 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanfang.datacleaning.dao.dao.master.TblBusinessDao;
-import com.wanfang.datacleaning.dao.model.master.bo.BusinessCapInfoBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
+import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
+import com.wanfang.datacleaning.handler.model.bo.BusinessCapInfoBO;
 import com.wanfang.datacleaning.handler.service.CapInfoService;
 import com.wanfang.datacleaning.handler.util.business.ForeignExRateUtils;
 import com.wanfang.datacleaning.util.DateUtils;
 import com.wanfang.datacleaning.util.LoggerUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +44,12 @@ public class CapInfoServiceImpl implements CapInfoService {
     @Override
     public void updateCapInfo() {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的资金信息开始 ***********");
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的资金信息开始");
 
         // 递归更新资金信息
-        updateCapInfoByRecursion(CmnConstant.DEFAULT_START_INDEX, CmnConstant.DEFAULT_PAGE_SIZE);
+        updateCapInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
 
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的资金信息结束,共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms ***********",
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的资金信息结束,共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
                 (capInfoUpdSuccessCount + capInfoUpdFailCount), capInfoUpdSuccessCount, capInfoUpdFailCount, System.currentTimeMillis() - startTime);
     }
 
@@ -63,13 +62,14 @@ public class CapInfoServiceImpl implements CapInfoService {
     private void updateCapInfoByRecursion(int startIndex, int pageSize) {
         int pageNum = startIndex / pageSize + 1;
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页资金信息开始 ***********", pageNum);
+        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页资金信息开始", pageNum);
         List<BusinessCapInfoBO> capInfoBOList = tblBusinessDao.getCapInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页资金信息结束,共查询到【{}】条数据，耗时【{}】ms ***********", pageNum, capInfoBOList.size(), System.currentTimeMillis() - startTime);
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页资金信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, capInfoBOList.size(), System.currentTimeMillis() - startTime);
 
         if (capInfoBOList != null && capInfoBOList.size() > 0) {
             startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页资金信息开始 ***********", pageNum);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页资金信息开始", pageNum);
             List<BusinessCapInfoBO> batchList = new LinkedList<>();
             for (int i = 0; i < capInfoBOList.size(); i++) {
                 batchList.add(capInfoBOList.get(i));
@@ -84,11 +84,11 @@ public class CapInfoServiceImpl implements CapInfoService {
                     batchList = new LinkedList<>();
                 }
             }
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页资金信息结束,共更新【{}】条数据，耗时【{}】ms ***********", pageNum, capInfoBOList.size(), System.currentTimeMillis() - startTime);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页资金信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, capInfoBOList.size(), System.currentTimeMillis() - startTime);
 
             // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (capInfoBOList.size() == CmnConstant.DEFAULT_PAGE_SIZE) {
-                updateCapInfoByRecursion(startIndex + pageSize, CmnConstant.DEFAULT_PAGE_SIZE);
+            if (capInfoBOList.size() == CmnConstant.PAGE_SIZE) {
+                updateCapInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
             }
         }
     }
@@ -97,7 +97,7 @@ public class CapInfoServiceImpl implements CapInfoService {
      * 处理资金信息
      *
      * @param capInfoBO
-     * @return handleCapInfo
+     * @return BusinessCapInfoBO
      */
     private BusinessCapInfoBO handleCapInfo(BusinessCapInfoBO capInfoBO) {
         if (capInfoBO.getRegCap() == null) {
@@ -122,14 +122,18 @@ public class CapInfoServiceImpl implements CapInfoService {
     private boolean updateBatchCapInfo(List<BusinessCapInfoBO> capInfoBOList) {
         List<BusinessCapInfoBO> handleList = new ArrayList<>();
         try {
+            long startTime = System.currentTimeMillis();
             for (BusinessCapInfoBO capInfoBO : capInfoBOList) {
                 if (capInfoBO != null) {
                     handleList.add(handleCapInfo(capInfoBO));
                 }
             }
+            LoggerUtils.appendInfoLog(logger, "处理【{}】条资金信息共耗时【{}】ms", capInfoBOList.size(), System.currentTimeMillis() - startTime);
+            startTime = System.currentTimeMillis();
             if (handleList.size() > 0) {
                 tblBusinessDao.updateBatchCapInfoByKey(handleList);
             }
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条资金信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
             return true;
         } catch (Exception e) {
             LoggerUtils.appendErrorLog(logger, "参数：【{}】，更新资金信息(updateCapInfo())出现异常：", JSON.toJSONString(handleList), e);

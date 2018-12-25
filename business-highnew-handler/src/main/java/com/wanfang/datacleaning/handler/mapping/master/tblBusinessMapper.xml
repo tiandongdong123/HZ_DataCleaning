@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+
+    <resultMap id="HighNewResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessHighNewInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="HIGHNEWENTER" property="highNewEnter" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--分页获取高新技术信息-->
+    <select id="getHighNewInfoByPage" resultMap="HighNewResultMap">
+        SELECT
+          ID,ENTNAME,HIGHNEWENTER,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新高新技术信息-->
+    <update id="updateHighNewInfoByKey"
+            parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessHighNewInfoBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="highNewEnter != null">
+                HIGHNEWENTER = #{highNewEnter},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新高新技术信息-->
+    <update id="updateBatchHighNewInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.highNewEnter != null">
+                    HIGHNEWENTER = #{item.highNewEnter},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

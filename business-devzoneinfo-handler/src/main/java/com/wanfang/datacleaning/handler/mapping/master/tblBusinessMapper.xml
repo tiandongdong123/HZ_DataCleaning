@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+
+    <resultMap id="devZoneResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessDevZoneInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="ECOTECDEVZONE" property="ecoTecDevZone" jdbcType="VARCHAR"/>
+        <result column="LAT_LON" property="latLon" jdbcType="VARCHAR"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <resultMap id="latLonResultMap" type="com.wanfang.datacleaning.handler.model.bo.DevZoneInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PRIPID" property="pripid" jdbcType="VARCHAR"/>
+        <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="REGORG" property="regOrg" jdbcType="VARCHAR"/>
+        <result column="DOM" property="dom" jdbcType="VARCHAR"/>
+        <result column="DOMDISTRICT" property="domDistrict" jdbcType="VARCHAR"/>
+        <result column="PROVINCE" property="province" jdbcType="INTEGER"/>
+        <result column="CITY" property="city" jdbcType="INTEGER"/>
+        <result column="AREA" property="area" jdbcType="INTEGER"/>
+        <result column="LAT_LON" property="latLon" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--分页获取开发区信息-->
+    <select id="getDevZoneInfoByPage" resultMap="devZoneResultMap">
+        SELECT
+        ID,ECOTECDEVZONE,LAT_LON,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+        ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新开发区信息-->
+    <update id="updateDevZoneInfoByKey"
+            parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessDevZoneInfoBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="ECOTECDEVZONE != null and ECOTECDEVZONE != ''">
+                ECOTECDEVZONE = #{ecoTecDevZone},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新开发区信息-->
+    <update id="updateBatchDevZoneInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="ECOTECDEVZONE != null and ECOTECDEVZONE != ''">
+                    ECOTECDEVZONE = #{ecoTecDevZone},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+    <!--分页获取经纬度信息-->
+    <select id="getLatLonInfoByPage" resultMap="latLonResultMap">
+        SELECT
+        ID,PRIPID,ENTNAME,REGORG,DOM,DOMDISTRICT,PROVINCE,CITY,AREA,LAT_LON
+        FROM tblBusiness
+        WHERE
+        ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+</mapper>

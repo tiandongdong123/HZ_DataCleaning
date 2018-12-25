@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+    <resultMap id="AreaInfoResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessAreaInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="REGORG" property="regOrg" jdbcType="VARCHAR"/>
+        <result column="POSTALCODE" property="postalCode" jdbcType="VARCHAR"/>
+        <result column="DOM" property="dom" jdbcType="VARCHAR"/>
+        <result column="DOMDISTRICT" property="domDistrict" jdbcType="VARCHAR"/>
+        <result column="OPLOC" property="opLoc" jdbcType="VARCHAR"/>
+        <result column="OPLOCDISTRICT" property="opLocDistrict" jdbcType="VARCHAR"/>
+        <result column="PROVINCE" property="province" jdbcType="INTEGER"/>
+        <result column="CITY" property="city" jdbcType="INTEGER"/>
+        <result column="AREA" property="area" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <resultMap id="ShortAreaInfoResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessAreaInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PROVINCE" property="province" jdbcType="INTEGER"/>
+        <result column="CITY" property="city" jdbcType="INTEGER"/>
+        <result column="AREA" property="area" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--分页获取行政区划信息-->
+    <select id="getAreaInfoByPage" resultMap="AreaInfoResultMap">
+        SELECT
+          ID,REGORG,POSTALCODE,DOM,DOMDISTRICT,OPLOC,OPLOCDISTRICT,PROVINCE,CITY,AREA,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+          AND AREA = 0
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--分页获取行政区划信息-->
+    <select id="getShortAreaInfoByPage" resultMap="ShortAreaInfoResultMap">
+        SELECT
+          ID,PROVINCE,CITY,AREA,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新行政区划信息-->
+    <update id="updateAreaInfoByKey" parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessAreaInfoBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="province != null">
+                PROVINCE = #{province},
+            </if>
+            <if test="city != null">
+                CITY = #{city},
+            </if>
+            <if test="area != null">
+                AREA = #{area},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新行政区划信息-->
+    <update id="updateBatchAreaInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.province != null">
+                    PROVINCE = #{item.province},
+                </if>
+                <if test="item.city != null">
+                    CITY = #{item.city},
+                </if>
+                <if test="item.area != null">
+                    AREA = #{item.area},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

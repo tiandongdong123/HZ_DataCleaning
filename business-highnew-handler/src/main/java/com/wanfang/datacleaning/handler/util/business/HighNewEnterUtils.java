@@ -1,6 +1,9 @@
 package com.wanfang.datacleaning.handler.util.business;
 
+import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.ExcelUtils;
+import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -8,10 +11,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  *    
@@ -23,6 +24,7 @@ import java.util.Map;
 public class HighNewEnterUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(HighNewEnterUtils.class);
+    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     /**
      * 高新企业
@@ -30,58 +32,20 @@ public class HighNewEnterUtils {
     private static final HashMap<String, String> highNewEnterMap = new HashMap<>(16);
 
     /**
-     * 高新企业文件
+     * 高新企业文件classpath
      */
-    private static final String HIGH_NEW_ENTER_FILE_PATH = "datafile/highNewEnter.xlsx";
+    public static final String HIGH_NEW_ENTER_FILE_PATH = PropertiesUtils.getValue("highNewEnter.file.path");
+    /**
+     * 高新企业所在sheet名称
+     */
+    public static final String HIGH_NEW_ENTER_SHEET_NAME = PropertiesUtils.getValue("highNewEnter.sheet.name");
 
     private HighNewEnterUtils() {
     }
 
     static {
-        try {
-            cacheHighNewEnterInfo();
-        } catch (Exception e) {
-            logger.error("缓存高新企业信息(cacheHighNewEnterInfo())出现异常：", e);
-        }
-    }
-
-    /**
-     * 缓存高新企业信息
-     *
-     * @throws Exception
-     */
-    public static void cacheHighNewEnterInfo() throws Exception {
-        Workbook workbook = ExcelUtils.readExcel(HighNewEnterUtils.class.getClassLoader().getResource(HIGH_NEW_ENTER_FILE_PATH).getPath());
-        if (workbook != null) {
-            Sheet stdCodeSheet = workbook.getSheet("Sheet1");
-            int totalRow = stdCodeSheet.getLastRowNum();
-
-            String entName;
-            Row row;
-            for (int i = 0; i <= totalRow; i++) {
-                row = stdCodeSheet.getRow(i);
-                entName = StringUtils.deleteWhitespace(ExcelUtils.getStringValue(row.getCell(0)));
-
-                highNewEnterMap.put(entName, (i + 1) + "");
-            }
-        }
-    }
-
-    /**
-     * 获取缓存的高新企业信息
-     *
-     * @return List<String>
-     */
-    public static HashMap<String, String> getCacheHighNewEnterMap() {
-        if (highNewEnterMap == null || highNewEnterMap.isEmpty()) {
-            try {
-                cacheHighNewEnterInfo();
-            } catch (Exception e) {
-                logger.error("获取缓存的高新企业信息(getCacheHighNewEnterMap())出现异常：", e);
-                return new HashMap<>(0);
-            }
-        }
-        return highNewEnterMap;
+        // 缓存高新企业信息
+        cacheHighNewEnterInfo();
     }
 
     /**
@@ -91,14 +55,59 @@ public class HighNewEnterUtils {
      * @return boolean
      */
     public static boolean isHighNewEnter(String entName) {
-        if (StringUtils.isEmpty(entName)) {
+        if (StringUtils.isBlank(entName)) {
             return false;
         }
 
-        HashMap<String, String> cacheHighNewEnterMap = getCacheHighNewEnterMap();
-        if (cacheHighNewEnterMap != null && cacheHighNewEnterMap.containsKey(entName)) {
+        // 去除空白字符
+        entName = StringUtils.deleteWhitespace(entName);
+        if (highNewEnterMap.containsKey(entName)) {
             return true;
         }
         return false;
     }
+
+    /**
+     * 获取缓存高新企业信息数量
+     *
+     * @return int
+     */
+    public static int getCacheHighNewEnterInfoSize() {
+        return highNewEnterMap.size();
+    }
+
+    /**
+     * 缓存高新企业信息
+     */
+    private static void cacheHighNewEnterInfo() {
+        try {
+            Workbook workbook = ExcelUtils.readExcel(HIGH_NEW_ENTER_FILE_PATH);
+            if (workbook != null) {
+                Sheet stdCodeSheet = workbook.getSheet(HIGH_NEW_ENTER_SHEET_NAME);
+                int totalRow = stdCodeSheet.getLastRowNum();
+
+                String entName;
+                Row row;
+                for (int i = 0; i <= totalRow; i++) {
+                    row = stdCodeSheet.getRow(i);
+                    entName = StringUtils.deleteWhitespace(ExcelUtils.getStringValue(row.getCell(0)));
+                    // 判断企业名称是否为空
+                    if (StringUtils.isEmpty(entName)) {
+                        LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】，sheet：【{}】，行号：【{}】，企业名称为空", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
+                        continue;
+                    }
+                    // 判断企业名称是否已存在
+                    if (highNewEnterMap.containsKey(entName)) {
+                        LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】，sheet：【{}】，行号：【{}】，企业名称已存在", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
+                        continue;
+                    }
+
+                    highNewEnterMap.put(entName, (i + 1) + "");
+                }
+            }
+        } catch (IOException e) {
+            LoggerUtils.appendErrorLog(logger, "文件：【{}】，sheet：【{}】，cacheHighNewEnterInfo()出现异常：", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, e);
+        }
+    }
+
 }

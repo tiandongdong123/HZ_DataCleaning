@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.slave.SlaveTblBusinessDao">
+    <resultMap id="ShortAreaInfoResultMap" type="com.wanfang.datacleaning.handler.model.bo.ShortBusinessAreaInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PROVINCE" property="province" jdbcType="INTEGER"/>
+        <result column="CITY" property="city" jdbcType="INTEGER"/>
+        <result column="AREA" property="area" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--批量更新行政区划信息-->
+    <update id="updateBatchAreaInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.province != null">
+                    PROVINCE = #{item.province},
+                </if>
+                <if test="item.city != null">
+                    CITY = #{item.city},
+                </if>
+                <if test="item.area != null">
+                    AREA = #{item.area},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

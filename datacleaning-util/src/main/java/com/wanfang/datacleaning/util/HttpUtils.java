@@ -75,7 +75,7 @@ public class HttpUtils {
      * @param url 请求url
      * @return String（若请求出现异常，则返回null）
      */
-    public static String requestByGet(String url) {
+    public static String requestByGet(String url) throws IOException {
 
         long startTime = System.currentTimeMillis();
 
@@ -104,12 +104,6 @@ public class HttpUtils {
             } finally {
                 response.close();
             }
-        } catch (ClientProtocolException e) {
-            LoggerUtils.appendErrorLog(logger, "url：【{}】，请求出现异常(ClientProtocolException)：", url, e);
-        } catch (ParseException e) {
-            LoggerUtils.appendErrorLog(logger, "url：【{}】，请求出现异常(ParseException)：", url, e);
-        } catch (IOException e) {
-            LoggerUtils.appendErrorLog(logger, "url：【{}】，请求出现异常(IOException)：", url, e);
         } finally {
             // 关闭连接,释放资源（若没有采用连接池方式，需关闭连接）
 ///            try {

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!--格式化输出：%-5level：级别从左显示5个字符宽度，%d表示日期，%thread表示线程名，%msg：日志消息，%n是换行符-->
+    <property name="LOG_PATTERN" value="%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %logger{50}.%method:%line - %msg%n"/>
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <property name="LOG_HOME" value="logs/business-areainfo-handler"/>
+    <!--定义应用名称-->
+    <property name="APP_NAME" value="businessAreaInfoHandler"/>
+    <!--定义日志文件保留时间-->
+    <property name="MAX_HISTORY" value="30"/>
+
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成日志文件_DEBUG -->
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤器-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/debug/${APP_NAME}_debug_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成日志文件_INFO -->
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤器-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/info/${APP_NAME}_info_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成日志文件_WARN -->
+    <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤器-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/warn/${APP_NAME}_warn_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成日志文件_ERROR -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--过滤器-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/error/${APP_NAME}_error_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成task日志文件 -->
+    <appender name="Task_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/task/${APP_NAME}_task_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 滚动生成日志文件_异常代码数据 -->
+    <appender name="abnormalCodeDataFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/abnormalCodeData/${APP_NAME}_abnormalCodeData_%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- myibatis log configure  -->
+    <logger name="com.apache.ibatis" level="TRACE"/>
+    <logger name="com.ibatis" level="DEBUG"/>
+    <logger name="com.ibatis.common.jdbc.SimpleDataSource" level="DEBUG"/>
+    <logger name="com.ibatis.common.jdbc.ScriptRunner" level="DEBUG"/>
+    <logger name="com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" level="DEBUG"/>
+    <logger name="java.sql.Connection" level="DEBUG"/>
+    <logger name="java.sql.Statement" level="DEBUG"/>
+    <logger name="java.sql.PreparedStatement" level="DEBUG"/>
+
+    <logger name="com.wanfang.datacleaning.handler.task" level="INFO" additivity="false">
+        <appender-ref ref="Task_FILE"/>
+    </logger>
+
+    <logger name="abnormalCodeDataLogger" level="INFO" additivity="false">
+        <appender-ref ref="abnormalCodeDataFileAppender"/>
+    </logger>
+
+    <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="DEBUG_FILE"/>
+        <appender-ref ref="INFO_FILE"/>
+        <appender-ref ref="WARN_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
+</configuration>

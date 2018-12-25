@@ -1,7 +1,7 @@
 package com.wanfang.datacleaning.handler.util.business;
 
-import com.wanfang.datacleaning.dao.model.master.bo.PatentPatTypeBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
+import com.wanfang.datacleaning.handler.model.bo.PatentPatTypeBO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -16,11 +16,6 @@ import java.util.*;
 public class PatentDataUtils {
 
     private static Map<String, List<PatentPatTypeBO>> patTypeBOMapWithFilter = new HashMap<>(16);
-
-    /**
-     * 名称长度限制
-     */
-    private static final int NAME_LENGTH_LIMIT = 3;
 
     private PatentDataUtils() {
     }
@@ -102,15 +97,11 @@ public class PatentDataUtils {
 
                 // 去除空白字符
                 propNamesWithoutWhitespace = StringUtils.deleteWhitespace(patTypeBO.getProposerName());
-                if (propNamesWithoutWhitespace.length() <= NAME_LENGTH_LIMIT) {
-                    continue;
-                }
-
                 // 分隔企业名称
-                propNameArray = CommonUtils.splitEntName(patTypeBO.getProposerName());
+                propNameArray = splitEntName(propNamesWithoutWhitespace);
                 for (int j = 0; j < propNameArray.length; j++) {
                     splitPropName = propNameArray[j];
-                    if (splitPropName.length() <= NAME_LENGTH_LIMIT) {
+                    if (StringUtils.isEmpty(splitPropName)) {
                         continue;
                     }
 
@@ -124,6 +115,15 @@ public class PatentDataUtils {
                 }
             }
         }
+    }
+
+    /**
+     * 获取缓存的专利类型信息(过滤不符合条件的数据,如：个人)长度
+     *
+     * @return Map
+     */
+    public static int getCachePatTypeInfoMapWithFilterSize() {
+        return patTypeBOMapWithFilter.size();
     }
 
     /**
@@ -184,5 +184,24 @@ public class PatentDataUtils {
         }
 
         return handleResultBuilder.toString().replaceFirst(CmnConstant.SEPARATOR_COMMA, "");
+    }
+
+    /**
+     * 分隔企业名称
+     *
+     * @param entName 企业名称
+     * @return String[]
+     */
+    public static String[] splitEntName(String entName) {
+
+        if (entName.contains(CmnConstant.SEPARATOR_SEMICOLON)) {
+            return StringUtils.split(entName, CmnConstant.SEPARATOR_SEMICOLON);
+        }
+
+        if (entName.contains(CmnConstant.SEPARATOR_CN_SEMICOLON)) {
+            return StringUtils.split(entName, CmnConstant.SEPARATOR_CN_SEMICOLON);
+        }
+
+        return new String[]{entName};
     }
 }

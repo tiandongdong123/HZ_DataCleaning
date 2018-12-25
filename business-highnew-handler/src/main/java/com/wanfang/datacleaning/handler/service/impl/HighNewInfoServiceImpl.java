@@ -1,10 +1,10 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanfang.datacleaning.dao.dao.master.TblBusinessDao;
-import com.wanfang.datacleaning.dao.model.master.bo.BusinessHighNewInfoBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
 import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
+import com.wanfang.datacleaning.handler.model.bo.BusinessHighNewInfoBO;
 import com.wanfang.datacleaning.handler.service.HighNewInfoService;
 import com.wanfang.datacleaning.handler.util.business.HighNewEnterUtils;
 import com.wanfang.datacleaning.util.DateUtils;
@@ -47,12 +47,12 @@ public class HighNewInfoServiceImpl implements HighNewInfoService {
     public void updateHighNewInfo() {
 
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的高新信息开始 ***********");
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的高新信息开始");
 
         // 递归更新高新信息
-        updateLocationInfoByRecursion(CmnConstant.DEFAULT_START_INDEX, CmnConstant.DEFAULT_PAGE_SIZE);
+        updateLocationInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
 
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的高新信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms ***********",
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的高新信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
                 (highNewInfoUpdSuccessCount + highNewInfoUpdFailCount), highNewInfoUpdSuccessCount, highNewInfoUpdFailCount, System.currentTimeMillis() - startTime);
 
     }
@@ -66,14 +66,14 @@ public class HighNewInfoServiceImpl implements HighNewInfoService {
     private void updateLocationInfoByRecursion(int startIndex, int pageSize) {
         int pageNum = startIndex / pageSize + 1;
         long startTime = System.currentTimeMillis();
-
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页高新信息开始 ***********", pageNum);
+        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页高新信息开始", pageNum);
         List<BusinessHighNewInfoBO> highNewInfoBOList = tblBusinessDao.getHighNewInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页高新信息结束,共查询到【{}】条数据，耗时【{}】ms ***********", pageNum, highNewInfoBOList.size(), System.currentTimeMillis() - startTime);
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页高新信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, highNewInfoBOList.size(), System.currentTimeMillis() - startTime);
 
         if (highNewInfoBOList != null && highNewInfoBOList.size() > 0) {
             startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页高新信息开始 ***********", pageNum);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页高新信息开始", pageNum);
             List<BusinessHighNewInfoBO> batchList = new LinkedList<>();
             for (int i = 0; i < highNewInfoBOList.size(); i++) {
                 batchList.add(highNewInfoBOList.get(i));
@@ -88,11 +88,11 @@ public class HighNewInfoServiceImpl implements HighNewInfoService {
                     batchList = new LinkedList<>();
                 }
             }
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页高新信息结束,共更新【{}】条数据，耗时【{}】ms ***********", pageNum, highNewInfoBOList.size(), System.currentTimeMillis() - startTime);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页高新信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, highNewInfoBOList.size(), System.currentTimeMillis() - startTime);
 
             // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (highNewInfoBOList.size() == CmnConstant.DEFAULT_PAGE_SIZE) {
-                updateLocationInfoByRecursion(startIndex + pageSize, CmnConstant.DEFAULT_PAGE_SIZE);
+            if (highNewInfoBOList.size() == CmnConstant.PAGE_SIZE) {
+                updateLocationInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
             }
         }
     }
@@ -104,7 +104,7 @@ public class HighNewInfoServiceImpl implements HighNewInfoService {
      * @return BusinessLocationInfoBO 若出现异常，则返回null
      */
     private BusinessHighNewInfoBO handleHighNewInfo(BusinessHighNewInfoBO highNewInfoBO) {
-        if (highNewInfoBO == null || StringUtils.isEmpty(highNewInfoBO.getEntName())) {
+        if (highNewInfoBO == null || StringUtils.isBlank(highNewInfoBO.getEntName())) {
             highNewInfoBO.setHighNewEnter(CmnEnum.WhetherFlagEnum.NO.getValue());
             return highNewInfoBO;
         }
@@ -131,20 +131,23 @@ public class HighNewInfoServiceImpl implements HighNewInfoService {
     private boolean updateBatchHighNewInfo(List<BusinessHighNewInfoBO> highNewInfoBOList) {
         List<BusinessHighNewInfoBO> handleList = new ArrayList<>();
         try {
+            long startTime = System.currentTimeMillis();
             for (BusinessHighNewInfoBO highNewInfoBO : highNewInfoBOList) {
                 if (highNewInfoBO != null) {
                     handleList.add(handleHighNewInfo(highNewInfoBO));
                 }
             }
+            LoggerUtils.appendInfoLog(logger, "处理【{}】条高新信息共耗时【{}】ms", highNewInfoBOList.size(), System.currentTimeMillis() - startTime);
+            startTime = System.currentTimeMillis();
             if (handleList.size() > 0) {
                 tblBusinessDao.updateBatchHighNewInfoByKey(handleList);
             }
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条高新信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
+            return true;
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "参数：【{}】，批量更新高新信息(updateBatchHighNewInfo())出现异常：", JSON.toJSONString(handleList), e);
+            LoggerUtils.appendErrorLog(logger, "参数：【{}】，updateBatchHighNewInfo()出现异常：", JSON.toJSONString(handleList), e);
             return false;
         }
-
-        return true;
     }
 }
 

@@ -1,23 +1,23 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanfang.datacleaning.dao.dao.master.TblBusinessDao;
-import com.wanfang.datacleaning.dao.model.master.bo.BusinessLocationInfoBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
+import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
+import com.wanfang.datacleaning.handler.model.bo.BusinessLocationInfoBO;
 import com.wanfang.datacleaning.handler.service.LocationInfoService;
-import com.wanfang.datacleaning.handler.util.gaodemap.geocode.GeoCodeUtils;
-import com.wanfang.datacleaning.handler.util.gaodemap.geocode.model.GCQryParam;
-import com.wanfang.datacleaning.handler.util.gaodemap.geocode.model.GCQryResult;
+import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.DateUtils;
 import com.wanfang.datacleaning.util.LoggerUtils;
+import com.wanfang.datacleaning.util.gaodemap.constant.CmnEnum;
+import com.wanfang.datacleaning.util.gaodemap.geocode.GeoCodeUtils;
+import com.wanfang.datacleaning.util.gaodemap.geocode.model.GcQryParam;
+import com.wanfang.datacleaning.util.gaodemap.geocode.model.GcQryResult;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +35,21 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     private static final Logger logger = LoggerFactory.getLogger(LocationInfoServiceImpl.class);
 
     /**
+     * key
+     */
+    public static final String GD_MAP_KEY = PropertiesUtils.getValue("gdMap_key");
+    /**
+     * 地理编码url
+     */
+    public static final String GEOCODE_URL = PropertiesUtils.getValue("gdMap_geocode_url");
+
+    /**
+     * 地理编码sig
+     */
+    public static final String GEOCODE_SIG = PropertiesUtils.getValue("gdMap_geocode_sig");
+
+
+    /**
      * 更新位置信息成功数量
      */
     private int locInfoUpdSuccessCount;
@@ -50,12 +65,12 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     public void updateLocationInfo() {
 
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的位置信息开始 ***********");
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的位置信息开始");
 
         // 递归更新位置信息
-        updateLocationInfoByRecursion(CmnConstant.DEFAULT_START_INDEX, CmnConstant.DEFAULT_PAGE_SIZE);
+        updateLocationInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
 
-        LoggerUtils.appendInfoLog(logger, "*********** 递归更新DB工商表的位置信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms ***********",
+        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的位置信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
                 (locInfoUpdSuccessCount + locInfoUpdFailCount), locInfoUpdSuccessCount, locInfoUpdFailCount, System.currentTimeMillis() - startTime);
 
     }
@@ -69,14 +84,14 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     private void updateLocationInfoByRecursion(int startIndex, int pageSize) {
         int pageNum = startIndex / pageSize + 1;
         long startTime = System.currentTimeMillis();
-
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页位置信息开始 ***********", pageNum);
+        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页位置信息开始", pageNum);
         List<BusinessLocationInfoBO> locationInfoBOList = tblBusinessDao.getLocationInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "*********** 查询DB工商表的第【{}】页位置信息结束,共查询到【{}】条数据，耗时【{}】ms ***********", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页位置信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
 
         if (locationInfoBOList != null && locationInfoBOList.size() > 0) {
             startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页位置信息开始 ***********", pageNum);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页位置信息开始", pageNum);
             List<BusinessLocationInfoBO> batchList = new LinkedList<>();
             for (int i = 0; i < locationInfoBOList.size(); i++) {
                 batchList.add(locationInfoBOList.get(i));
@@ -91,11 +106,11 @@ public class LocationInfoServiceImpl implements LocationInfoService {
                     batchList = new LinkedList<>();
                 }
             }
-            LoggerUtils.appendInfoLog(logger, "*********** 更新DB工商表的第【{}】页位置信息结束,共更新【{}】条数据，耗时【{}】ms ***********", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页位置信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
 
             // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (locationInfoBOList.size() == CmnConstant.DEFAULT_PAGE_SIZE) {
-                updateLocationInfoByRecursion(startIndex + pageSize, CmnConstant.DEFAULT_PAGE_SIZE);
+            if (locationInfoBOList.size() == CmnConstant.PAGE_SIZE) {
+                updateLocationInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
             }
         }
     }
@@ -107,30 +122,23 @@ public class LocationInfoServiceImpl implements LocationInfoService {
      * @return BusinessLocationInfoBO 若出现异常，则返回null
      */
     private BusinessLocationInfoBO handleLocInfo(BusinessLocationInfoBO locationInfoBO) {
-        /**
-         * todo:后期删掉(跳过已更新过的经纬度信息)
-         */
-        if (locationInfoBO == null || StringUtils.isEmpty(locationInfoBO.getDom()) || StringUtils.isNotEmpty(locationInfoBO.getLatLon())) {
-            return null;
-        }
-
-        if (locationInfoBO == null || StringUtils.isEmpty(locationInfoBO.getDom())) {
+        if (locationInfoBO == null || StringUtils.isBlank(locationInfoBO.getDom())) {
             locationInfoBO.setLatLon("");
             locationInfoBO.setUpdateTime(DateUtils.getCurrentTimeStamp());
             return locationInfoBO;
         }
 
         try {
-            String handleAddressStr = handleSpecialCharInAddress(locationInfoBO.getDom());
+            String handleAddressStr = GeoCodeUtils.handleSpecialCharInAddress(locationInfoBO.getDom());
             Integer city = locationInfoBO.getCity();
-            GCQryParam qryParam = new GCQryParam();
-            qryParam.setKey(com.wanfang.datacleaning.handler.util.gaodemap.constant.CmnConstant.GD_MAP_KEY);
+            GcQryParam qryParam = new GcQryParam();
+            qryParam.setKey(GD_MAP_KEY);
             qryParam.setAddress(handleAddressStr);
             qryParam.setCity(city != null && city != 0 ? city.toString() : "");
-            qryParam.setSig(com.wanfang.datacleaning.handler.util.gaodemap.geocode.constant.CmnConstant.GEOCODE_SIG);
-            GCQryResult qryResult = GeoCodeUtils.getGeoCode(qryParam);
+            qryParam.setSig(GEOCODE_SIG);
+            GcQryResult qryResult = GeoCodeUtils.getGeoCode(GEOCODE_URL, qryParam);
 
-            boolean meetFlag = com.wanfang.datacleaning.handler.util.gaodemap.constant.CmnEnum.RequestStatusEnum.SUCCESS.getValue().equals(qryResult.getStatus())
+            boolean meetFlag = CmnEnum.RequestStatusEnum.SUCCESS.getValue().equals(qryResult.getStatus())
                     && qryResult.getGcGeoCodes().size() > 0 && StringUtils.isNoneEmpty(qryResult.getGcGeoCodes().get(0).getLocation());
             if (meetFlag) {
                 String[] locArray = qryResult.getGcGeoCodes().get(0).getLocation().split(CmnConstant.SEPARATOR_COMMA);
@@ -138,12 +146,11 @@ public class LocationInfoServiceImpl implements LocationInfoService {
 
                 locationInfoBO.setLatLon(locationStr);
                 locationInfoBO.setUpdateTime(DateUtils.getCurrentTimeStamp());
+                return locationInfoBO;
             } else {
                 LoggerUtils.appendInfoLog(logger, "locationInfoBO：【{}】，qryResult：【{}】，位置信息获取失败！", locationInfoBO, qryResult);
-                locationInfoBO.setLatLon("");
-                locationInfoBO.setUpdateTime(DateUtils.getCurrentTimeStamp());
+                return null;
             }
-            return locationInfoBO;
         } catch (Exception e) {
             LoggerUtils.appendErrorLog(logger, "locationInfoBO：【{}】，处理位置信息(handleLocInfo())出现异常：", locationInfoBO, e);
             return null;
@@ -159,33 +166,24 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     private boolean updateBatchLocationInfo(List<BusinessLocationInfoBO> locationInfoBOList) {
         List<BusinessLocationInfoBO> handleList = new ArrayList<>();
         try {
+            long startTime = System.currentTimeMillis();
             for (BusinessLocationInfoBO locationInfoBO : locationInfoBOList) {
                 locationInfoBO = handleLocInfo(locationInfoBO);
                 if (locationInfoBO != null && StringUtils.isNotEmpty(locationInfoBO.getDom())) {
                     handleList.add(locationInfoBO);
                 }
             }
+            LoggerUtils.appendInfoLog(logger, "处理【{}】条位置信息共耗时【{}】ms", locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+            startTime = System.currentTimeMillis();
             if (handleList.size() > 0) {
                 tblBusinessDao.updateBatchLocationInfoByKey(handleList);
             }
+            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条位置信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
+            return true;
         } catch (Exception e) {
             LoggerUtils.appendErrorLog(logger, "参数：【{}】，批量更新位置信息(updateBatchLocationInfo())出现异常：", JSON.toJSONString(handleList), e);
             return false;
         }
-
-        return true;
-    }
-
-    /**
-     * 处理地址中的特殊字符
-     *
-     * @param address 地址
-     * @return String
-     * @throws UnsupportedEncodingException
-     */
-    private String handleSpecialCharInAddress(String address) throws UnsupportedEncodingException {
-        address = address.replace(" ", "");
-        return URLEncoder.encode(address, "UTF-8");
     }
 }
 

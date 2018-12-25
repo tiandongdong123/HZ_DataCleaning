@@ -1,0 +1,12 @@
+package com.wanfang.datacleaning.handler.dao.master;
+
+/**
+ *    
+ *  @Description
+ *  @Author   luqs   
+ *  @Date 2018/8/29 18:34 
+ *  @Version  V1.0   
+ */
+public interface TblPatentResultDao extends TblEntResultDao {
+
+}

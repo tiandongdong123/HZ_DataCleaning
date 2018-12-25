@@ -1,9 +1,9 @@
 package com.wanfang.datacleaning.handler.util.business;
 
-import com.wanfang.datacleaning.dao.model.master.bo.StandardStdTypeBO;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
-import com.wanfang.datacleaning.handler.util.business.standard.StandardCodeUtils;
-import com.wanfang.datacleaning.handler.util.business.standard.model.Standard;
+import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.model.bo.StandardStdTypeBO;
+import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +21,10 @@ import java.util.Map;
  *  @Version  V1.0   
  */
 public class StandardDataUtils {
-    private static final Logger logger = LoggerFactory.getLogger(StandardDataUtils.class);
+
+    private static final Logger abCodeDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     private static Map<String, List<StandardStdTypeBO>> stdTypeBOMapWithFilter = new HashMap<>(16);
-    /**
-     * 名称长度限制
-     */
-    private static final int NAME_LENGTH_LIMIT = 3;
 
     private StandardDataUtils() {
     }
@@ -140,15 +137,11 @@ public class StandardDataUtils {
 
                 // 去除空白字符
                 draftUnitsWithoutWhitespace = StringUtils.deleteWhitespace(stdTypeBO.getDraftUnit());
-                if (draftUnitsWithoutWhitespace.length() <= NAME_LENGTH_LIMIT) {
-                    continue;
-                }
-
                 // 分隔企业名称
-                draftUnitArray = CommonUtils.splitEntName(stdTypeBO.getDraftUnit());
+                draftUnitArray = splitEntName(draftUnitsWithoutWhitespace);
                 for (int j = 0; j < draftUnitArray.length; j++) {
                     splitDraftUnit = draftUnitArray[j];
-                    if (splitDraftUnit.length() <= NAME_LENGTH_LIMIT) {
+                    if (StringUtils.isEmpty(splitDraftUnit)) {
                         continue;
                     }
 
@@ -165,9 +158,18 @@ public class StandardDataUtils {
     }
 
     /**
+     * 获取缓存的标准类型信息(过滤不符合条件的数据)长度
+     *
+     * @return int
+     */
+    public static int getCacheStdTypeInfoMapWithFilterSize() {
+        return stdTypeBOMapWithFilter.size();
+    }
+
+    /**
      * 获取缓存的标准类型信息(过滤不符合条件的数据)
      *
-     * @return
+     * @return int
      */
     public static Map<String, List<StandardStdTypeBO>> getCacheStdTypeInfoMapWithFilter() {
         return stdTypeBOMapWithFilter;
@@ -180,30 +182,23 @@ public class StandardDataUtils {
      * @return String
      */
     public static String getDrStdType(String stdType) {
-        String drStdType = "";
-
         if (StringUtils.isBlank(stdType)) {
-            return drStdType;
+            return "";
         }
 
-        List<Standard> standardList;
-        try {
-            standardList = StandardCodeUtils.getCacheStandardInfo();
-            if (standardList != null && standardList.size() > 0) {
-                for (Standard standard : standardList) {
-                    if (stdType.equals(standard.getCode())) {
-                        if (EffectLevelEnum.COUNTRY.getValue().equals(standard.getEffectLevel())) {
-                            drStdType = EffectLevelEnum.COUNTRY.getKey();
-                        } else if (EffectLevelEnum.INDUSTRY.getValue().equals(standard.getEffectLevel())) {
-                            drStdType = EffectLevelEnum.INDUSTRY.getKey();
-                        } else if (EffectLevelEnum.ENTERPRISE.getValue().equals(standard.getEffectLevel())) {
-                            drStdType = EffectLevelEnum.ENTERPRISE.getKey();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("stdType：【{}】，getDrStdType()出现异常：", stdType, e);
+        String drStdType = "";
+        String effectLevelName = StandardCodeUtils.getEffectLevelByCode(StringUtils.deleteWhitespace(stdType));
+        if (StringUtils.isEmpty(effectLevelName)) {
+            LoggerUtils.appendWarnLog(abCodeDataLogger, "stdType：【{}】，标准代码文件中不含此代码", stdType);
+            return "";
+        }
+
+        if (EffectLevelEnum.COUNTRY.getValue().equals(effectLevelName)) {
+            drStdType = EffectLevelEnum.COUNTRY.getKey();
+        } else if (EffectLevelEnum.INDUSTRY.getValue().equals(effectLevelName)) {
+            drStdType = EffectLevelEnum.INDUSTRY.getKey();
+        } else if (EffectLevelEnum.ENTERPRISE.getValue().equals(effectLevelName)) {
+            drStdType = EffectLevelEnum.ENTERPRISE.getKey();
         }
 
         return drStdType;
@@ -258,5 +253,24 @@ public class StandardDataUtils {
         }
 
         return meetFlag;
+    }
+
+    /**
+     * 分隔企业名称
+     *
+     * @param entName 企业名称
+     * @return String[]
+     */
+    public static String[] splitEntName(String entName) {
+
+        if (entName.contains(CmnConstant.SEPARATOR_SEMICOLON)) {
+            return StringUtils.split(entName, CmnConstant.SEPARATOR_SEMICOLON);
+        }
+
+        if (entName.contains(CmnConstant.SEPARATOR_CN_SEMICOLON)) {
+            return StringUtils.split(entName, CmnConstant.SEPARATOR_CN_SEMICOLON);
+        }
+
+        return new String[]{entName};
     }
 }

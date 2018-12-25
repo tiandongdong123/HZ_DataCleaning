@@ -13,7 +13,6 @@ import java.util.List;
  *  @Version  V1.0   
  */
 public interface TblBusinessDao {
-
     /**
      * 分页获取企业(机构)名称信息
      *
@@ -172,4 +171,30 @@ public interface TblBusinessDao {
      * @return int
      */
     int updateBatchCapInfoByKey(List<BusinessCapInfoBO> capInfoBOList);
+
+    /**
+     * 分页获取统一社会信用代码信息
+     *
+     * @param startIndex 起始位置
+     * @param pageSize   每页数量
+     * @return List<BusinessEntNameBO>
+     */
+    List<UsCreditCodeBO> getUsCreditCodeByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+
+    /**
+     * 更新统一社会信用代码信息
+     *
+     * @param creditCodeBO
+     * @return int
+     */
+    int updateUsCreditCodeByKey(UsCreditCodeBO creditCodeBO);
+
+    /**
+     * 批量更新统一社会信用代码信息
+     *
+     * @param creditCodeBOList
+     * @return int
+     */
+    int updateBatchUsCreditCodeByKey(List<UsCreditCodeBO> creditCodeBOList);
+
 }

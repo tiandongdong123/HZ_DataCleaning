@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblBusinessDao">
+
+    <resultMap id="PatentFieldResultMap" type="com.wanfang.datacleaning.handler.model.bo.BusinessPatentInfoBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PRIPID" property="pripid" jdbcType="VARCHAR"/>
+        <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="OPFROM" property="opFrom" jdbcType="DATE"/>
+        <result column="OPTO" property="opTo" jdbcType="DATE"/>
+        <result column="HAS_PATENT" property="hasPatent" jdbcType="INTEGER"/>
+        <result column="PATENT_TYPE_LIST" property="patentTypeList" jdbcType="VARCHAR"/>
+        <result column="PATENT_NUM" property="patentNum" jdbcType="INTEGER"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--分页获取专利信息-->
+    <select id="getPatentInfoByPage" resultMap="PatentFieldResultMap">
+        SELECT
+          ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_PATENT,PATENT_TYPE_LIST,PATENT_NUM,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新专利信息-->
+    <update id="updatePatentInfoByKey"
+            parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessPatentInfoBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="hasPatent != null">
+                HAS_PATENT = #{hasPatent},
+            </if>
+            <if test="patentTypeList != null and patentTypeList != ''">
+                PATENT_TYPE_LIST = #{patentTypeList},
+            </if>
+            <if test="patentNum != null">
+                PATENT_NUM = #{patentNum},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新专利信息-->
+    <update id="updateBatchPatentInfoByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.hasPatent != null">
+                    HAS_PATENT = #{item.hasPatent},
+                </if>
+                <if test="item.patentTypeList != null and item.patentTypeList != ''">
+                    PATENT_TYPE_LIST = #{item.patentTypeList},
+                </if>
+                <if test="item.patentNum != null">
+                    PATENT_NUM = #{item.patentNum},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+</mapper>

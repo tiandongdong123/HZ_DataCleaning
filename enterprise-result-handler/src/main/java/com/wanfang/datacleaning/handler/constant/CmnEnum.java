@@ -12,30 +12,6 @@ public class CmnEnum {
     }
 
     /**
-     * 是否
-     */
-    public enum WhetherFlagEnum {
-        /**
-         * 否：0
-         */
-        NO(0),
-        /**
-         * 是：1
-         */
-        YES(1);
-
-        private final int value;
-
-        WhetherFlagEnum(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return this.value;
-        }
-    }
-
-    /**
      * 成果类型
      */
     public enum ResultTypeEnum {
@@ -81,6 +57,38 @@ public class CmnEnum {
 
         public void setKey(int key) {
             this.key = key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
+
+    /**
+     * 日志类型
+     */
+    public enum LoggerTypeEnum {
+        /**
+         * patentResultLogger：专利
+         */
+        PATENT_RESULT("patentResultLogger"),
+        /**
+         * stdResultLogger：标准
+         */
+        STD_RESULT("stdResultLogger"),
+        /**
+         * cstadResultLogger：成果
+         */
+        CSTAD_RESULT("cstadResultLogger");
+
+        private String value;
+
+        LoggerTypeEnum(String value) {
+            this.value = value;
         }
 
         public String getValue() {

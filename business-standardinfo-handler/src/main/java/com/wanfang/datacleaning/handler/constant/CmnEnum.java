@@ -12,6 +12,27 @@ public class CmnEnum {
     }
 
     /**
+     * 日志logger枚举
+     */
+    public enum LoggerEnum {
+
+        /**
+         * abnormalCodeDataLogger:异常代码数据
+         */
+        ABNORMAL_CODE_DATA("abnormalCodeDataLogger");
+
+        private final String value;
+
+        LoggerEnum(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+    }
+
+    /**
      * 是否
      */
     public enum WhetherFlagEnum {

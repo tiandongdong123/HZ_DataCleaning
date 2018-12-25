@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
     <!--格式化输出：%-5level：级别从左显示5个字符宽度，%d表示日期，%thread表示线程名，%msg：日志消息，%n是换行符-->
-    <property name="LOG_PATTERN" value="%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %logger{50} - %msg%n"/>
+    <property name="LOG_PATTERN" value="%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %logger{50}.%method:%line - %msg%n"/>
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
     <property name="LOG_HOME" value="logs/business-capinfo-handler"/>
     <!--定义应用名称-->
@@ -141,6 +141,27 @@
         </encoder>
     </appender>
 
+    <!-- 滚动生成日志文件_异常代码数据 -->
+    <appender name="abnormalCodeDataFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <fileNamePattern>${LOG_HOME}/abnormalCodeData/${APP_NAME}_abnormalCodeData_%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
+            <!--日志文件保留时间，时间单位与fileNamePattern中%d{}的设置一致-->
+            <MaxHistory>${MAX_HISTORY}</MaxHistory>
+            <!--单文件最大的存储-->
+            <MaxFileSize>64MB</MaxFileSize>
+        </rollingPolicy>
+        <!--编码器-->
+        <encoder>
+            <!--格式化输出-->
+            <pattern>${LOG_PATTERN}</pattern>
+            <!--日志编码-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
     <!-- myibatis log configure  -->
     <logger name="com.apache.ibatis" level="TRACE"/>
     <logger name="com.ibatis" level="DEBUG"/>
@@ -153,6 +174,10 @@
 
     <logger name="com.wanfang.datacleaning.handler.task" level="INFO" additivity="false">
         <appender-ref ref="Task_FILE"/>
+    </logger>
+
+    <logger name="abnormalCodeDataLogger" level="INFO" additivity="false">
+        <appender-ref ref="abnormalCodeDataFileAppender"/>
     </logger>
 
     <!-- 日志输出级别 -->

@@ -35,6 +35,8 @@
     <resultMap id="PatentFieldResultMap" type="com.wanfang.datacleaning.dao.model.master.bo.BusinessPatentInfoBO">
         <id column="ID" property="id" jdbcType="BIGINT"/>
         <result column="ENTNAME" property="entName" jdbcType="VARCHAR"/>
+        <result column="OPFROM" property="opFrom" jdbcType="DATE"/>
+        <result column="OPTO" property="opTo" jdbcType="DATE"/>
         <result column="HAS_PATENT" property="hasPatent" jdbcType="INTEGER"/>
         <result column="PATENT_TYPE_LIST" property="patentTypeList" jdbcType="VARCHAR"/>
         <result column="PATENT_NUM" property="patentNum" jdbcType="INTEGER"/>
@@ -65,6 +67,13 @@
         <result column="REGCAP" property="regCap" jdbcType="DECIMAL"/>
         <result column="REGCAPCUR" property="regCapCur" jdbcType="VARCHAR"/>
         <result column="REGCAP_RMB" property="regCapRmb" jdbcType="DECIMAL"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <resultMap id="UsCreditCodeResultMap" type="com.wanfang.datacleaning.dao.model.master.bo.UsCreditCodeBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
+        <result column="PRIPID" property="pripid" jdbcType="VARCHAR"/>
+        <result column="CREDITCODE" property="usCreditCode" jdbcType="VARCHAR"/>
         <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT"/>
     </resultMap>
 
@@ -410,6 +419,51 @@
             <set>
                 <if test="item.regCapRmb != null">
                     REGCAP_RMB = #{item.regCapRmb},
+                </if>
+                <if test="item.updateTime != null">
+                    UPDATE_TIME = #{item.updateTime},
+                </if>
+            </set>
+            <where>
+                AND ID = #{item.id}
+            </where>
+        </foreach>
+    </update>
+
+    <!--分页获取统一社会信用代码信息-->
+    <select id="getUsCreditCodeByPage" resultMap="UsCreditCodeResultMap">
+        SELECT
+          ID,PRIPID,CREDITCODE,UPDATE_TIME
+        FROM tblBusiness
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+    <!--更新统一社会信用代码信息-->
+    <update id="updateUsCreditCodeByKey" parameterType="com.wanfang.datacleaning.dao.model.master.bo.UsCreditCodeBO">
+        UPDATE tblBusiness
+        <set>
+            <if test="usCreditCode != null">
+                CREDITCODE = #{usCreditCode},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime},
+            </if>
+        </set>
+        <where>
+            AND ID = #{id}
+        </where>
+    </update>
+
+    <!--批量更新统一社会信用代码信息-->
+    <update id="updateBatchUsCreditCodeByKey" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item">
+            UPDATE tblBusiness
+            <set>
+                <if test="item.usCreditCode != null">
+                    CREDITCODE = #{item.usCreditCode},
                 </if>
                 <if test="item.updateTime != null">
                     UPDATE_TIME = #{item.updateTime},

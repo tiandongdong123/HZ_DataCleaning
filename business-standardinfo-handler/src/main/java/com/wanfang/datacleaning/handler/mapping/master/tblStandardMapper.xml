@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblStandardDao">
+
+    <resultMap id="BaseStandardTypeResultMap" type="com.wanfang.datacleaning.handler.model.bo.StandardStdTypeBO">
+        <result column="draft_unit" property="draftUnit" jdbcType="LONGVARCHAR"/>
+        <result column="stand_status" property="standardStatus" jdbcType="VARCHAR"/>
+        <result column="stand_type" property="standardType" jdbcType="VARCHAR"/>
+        <result column="issue_date" property="issueDate" jdbcType="DATE"/>
+    </resultMap>
+
+    <!--分页获取标准类型信息-->
+    <select id="getBaseStandardTypeInfoByPage" resultMap="BaseStandardTypeResultMap">
+        SELECT
+          draft_unit, stand_status,stand_type,issue_date
+        FROM tblStandard
+        WHERE
+          ID <![CDATA[ > ]]> #{startIndex}
+        ORDER BY ID
+        LIMIT #{pageSize}
+    </select>
+
+</mapper>
