@@ -17,11 +17,12 @@ public interface TblBusinessDao {
     /**
      * 分页获取位置信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      * @return List<BusinessEntNameBO>
      */
-    List<BusinessLocationInfoBO> getLocationInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<BusinessLocationInfoBO> getLocationInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 
     /**
      * 更新位置信息
@@ -34,7 +35,7 @@ public interface TblBusinessDao {
     /**
      * 批量更新位置信息
      *
-     * @param locationInfoBOList
+     * @param locationInfoBOList 位置信息集合
      * @return int
      */
     int updateBatchLocationInfoByKey(List<BusinessLocationInfoBO> locationInfoBOList);

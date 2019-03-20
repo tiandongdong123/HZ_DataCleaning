@@ -12,14 +12,14 @@ import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 public class CmnConstant {
 
     /**
-     * 起始位置
+     * id起始位置
      */
-    public static final int START_INDEX = Integer.parseInt(PropertiesUtils.getValue("startIndex"));
+    public static final int ID_START_POSITION = Integer.parseInt(PropertiesUtils.getValue("id.start.position"));
 
     /**
-     * 结束位置
+     * id结束位置
      */
-    public static final int END_INDEX = Integer.parseInt(PropertiesUtils.getValue("endIndex"));
+    public static final int ID_END_POSITION = Integer.parseInt(PropertiesUtils.getValue("id.end.position"));
 
     /**
      * 每页数量

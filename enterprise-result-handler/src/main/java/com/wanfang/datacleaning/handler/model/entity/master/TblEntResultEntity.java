@@ -8,7 +8,10 @@ package com.wanfang.datacleaning.handler.model.entity.master;
  *  @Version  V1.0   
  */
 public class TblEntResultEntity {
-
+    /**
+     * 主键id
+     */
+    private Long id;
     /**
      * 主体身份代码
      */
@@ -29,6 +32,14 @@ public class TblEntResultEntity {
      * 更新时间（10位时间戳）
      */
     private Long updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getPripid() {
         return pripid;
@@ -73,7 +84,8 @@ public class TblEntResultEntity {
     @Override
     public String toString() {
         return "TblEntResultEntity{" +
-                "pripid='" + pripid + '\'' +
+                "id=" + id +
+                ", pripid='" + pripid + '\'' +
                 ", entName='" + entName + '\'' +
                 ", resultNum='" + resultNum + '\'' +
                 ", resultType=" + resultType +

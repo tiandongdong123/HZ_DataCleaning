@@ -16,10 +16,10 @@ public interface TblBusinessDao {
     /**
      * 分页获取企业(机构)名称信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param pageSize        每页数量
      * @return List<BusinessEntNameBO>
      */
-    List<BusinessEntNameBO> getBaseEntNameInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<BusinessEntNameBO> getBaseEntNameInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("pageSize") int pageSize);
 
 }

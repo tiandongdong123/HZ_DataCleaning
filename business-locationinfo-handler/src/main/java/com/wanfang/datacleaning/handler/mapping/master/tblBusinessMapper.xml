@@ -15,10 +15,12 @@
     <!--分页获取位置信息-->
     <select id="getLocationInfoByPage" resultMap="locationFieldResultMap">
         SELECT
-          ID,DOM,PROVINCE,CITY,AREA,LAT_LON,UPDATE_TIME
+        ID,DOM,PROVINCE,CITY,AREA,LAT_LON,UPDATE_TIME
         FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -28,12 +30,8 @@
             parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessLocationInfoBO">
         UPDATE tblBusiness
         <set>
-            <if test="latLon != null and latLon != ''">
-                LAT_LON = #{latLon},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            LAT_LON = #{latLon},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -45,12 +43,8 @@
         <foreach collection="list" separator=";" item="item">
             UPDATE tblBusiness
             <set>
-                <if test="item.latLon != null and item.latLon != ''">
-                    LAT_LON = #{item.latLon},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                LAT_LON = #{item.latLon},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}

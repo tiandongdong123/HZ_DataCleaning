@@ -11,10 +11,12 @@
     <!--分页获取起草单位信息-->
     <select id="getBaseDraftUnitInfoByPage" resultMap="BaseDraftUnitResultMap">
         SELECT
-          ID,stand_num, draft_unit,issue_date
+        ID,stand_num, draft_unit,issue_date
         FROM tblStandard
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

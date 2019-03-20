@@ -28,6 +28,10 @@ public class DateUtils {
      * 时间格式：yyyy-MM-dd HH:mm:ss
      */
     public static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    /**
+     * 日期格式：yyyy-MM-dd
+     */
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private DateUtils() {
     }
@@ -39,7 +43,7 @@ public class DateUtils {
      * @param format 格式
      * @return String
      */
-    public static String convertDateToString(Date date, String format) {
+    public static String format(Date date, String format) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 
         return dateFormat.format(date);
@@ -51,7 +55,7 @@ public class DateUtils {
      * @return long
      */
     public static String getCurrentTime() {
-        return convertDateToString(new Date(), TIME_FORMAT);
+        return format(new Date(), TIME_FORMAT);
     }
 
     /**

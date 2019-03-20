@@ -17,10 +17,11 @@ public interface TblPatentDao {
     /**
      * 分页获取申请（专利权）人信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      * @return List<PatentProposerNameBO>
      */
-    List<PatentProposerNameBO> getBaseProposerNameInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<PatentProposerNameBO> getBaseProposerNameInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 
 }

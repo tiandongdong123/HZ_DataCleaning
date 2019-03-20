@@ -13,7 +13,7 @@
           ID,PRIPID, USCREDITCODE
         FROM tblUsCreditCode
         WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+          ID <![CDATA[ > ]]> #{idStartPosition}
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

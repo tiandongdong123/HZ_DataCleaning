@@ -1,8 +1,7 @@
 package com.wanfang.datacleaning.handler.util.business;
 
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.LoggerEnum;
 import com.wanfang.datacleaning.handler.model.bo.UsCreditCodeBO;
-import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class UsCreditCodeDataUtils {
 
-    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
+    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     private static Map<String, String> usCreditCodeMap = new HashMap<>(16);
 
@@ -45,19 +44,19 @@ public class UsCreditCodeDataUtils {
             for (UsCreditCodeBO creditCodeBO : creditCodeBOList) {
                 // 判断主体身份代码是否为空
                 if (creditCodeBO == null || StringUtils.isBlank(creditCodeBO.getPripid())) {
-                    LoggerUtils.appendWarnLog(abnormalDataLogger, "creditCodeBO：【{}】，主体身份代码为空", creditCodeBO);
+                    abnormalDataLogger.warn("creditCodeBO：【{}】，主体身份代码为空", creditCodeBO);
                     continue;
                 }
                 // 判断主体身份代码是否已存在
                 pripId = StringUtils.deleteWhitespace(creditCodeBO.getPripid());
                 if (usCreditCodeMap.containsKey(pripId)) {
-                    LoggerUtils.appendWarnLog(abnormalDataLogger, "creditCodeBO：【{}】，主体身份代码已存在", creditCodeBO);
+                    abnormalDataLogger.warn("creditCodeBO：【{}】，主体身份代码已存在", creditCodeBO);
                     continue;
                 }
                 // 判断统一社会信用代码是否符合标准格式
                 usCreditCode = StringUtils.deleteWhitespace(creditCodeBO.getUsCreditCode());
                 if (!isUnifiedSocialCreditCode(usCreditCode)) {
-                    LoggerUtils.appendWarnLog(abnormalDataLogger, "creditCodeBO：【{}】，统一社会信用代码不符合标准格式", creditCodeBO);
+                    abnormalDataLogger.warn("creditCodeBO：【{}】，统一社会信用代码不符合标准格式", creditCodeBO);
                     continue;
                 }
 
@@ -71,7 +70,7 @@ public class UsCreditCodeDataUtils {
      *
      * @return int
      */
-    public static int getgetCacheUsCreditCodeSize() {
+    public static int getCacheUsCreditCodeSize() {
         return usCreditCodeMap.size();
     }
 

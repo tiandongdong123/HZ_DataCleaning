@@ -21,9 +21,10 @@
         2）.修改数据源、数据库连接池信息；
         3）.修改定时任务配置信息(cron表达式)；
     3、修改conf目录下的routineConfig.properties文件：
-        1）.修改“startIndex”字段，即起始位置；
-        2）.修改“pageSize”字段，即每页数量；
-        3）.修改“batchSize”字段，即批量更新数量；
+        1）.修改“id.start.position”字段，即id起始位置；
+        2）.修改“id.end.position”字段，即id结束位置；
+        3）.修改“pageSize”字段，即每页数量；
+        4）.修改“batchSize”字段，即批量更新数量；
     4、修改conf目录下的logback.xml文件：
         1）.修改“<root level="">”标签中的“level”属性,即日志打印级别；
     5、修改conf/datafile目录下的standardCode.xls文件：

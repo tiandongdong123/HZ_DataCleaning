@@ -7,7 +7,7 @@ package com.wanfang.datacleaning.handler.service;
 public interface DevZoneService {
 
     /**
-     * 更新开发区信息
+     * 处理开发区信息
      */
-    void updateDevZoneInfo();
+    void handleDevZoneInfo();
 }

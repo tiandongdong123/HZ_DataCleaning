@@ -9,14 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface StandardInfoService {
     /**
-     * 缓存标准类型信息
-     *
-     * @return boolean
+     * 处理标准信息
      */
-    boolean cacheBaseStandardTypeInfo();
-
-    /**
-     * 更新标准信息
-     */
-    void updateStandardInfo();
+    void handleStandardInfo();
 }

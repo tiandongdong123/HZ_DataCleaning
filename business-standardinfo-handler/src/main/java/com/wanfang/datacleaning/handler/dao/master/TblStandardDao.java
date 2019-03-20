@@ -17,10 +17,10 @@ public interface TblStandardDao {
     /**
      * 分页获取标准类型信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param pageSize        每页数量
      * @return List<StandardStdTypeBO>
      */
-    List<StandardStdTypeBO> getBaseStandardTypeInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<StandardStdTypeBO> getBaseStandardTypeInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("pageSize") int pageSize);
 
 }

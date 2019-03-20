@@ -12,10 +12,12 @@
     <!--分页获取完成单位信息-->
     <select id="getBaseCompUnitInfoByPage" resultMap="BaseCompUnitResultMap">
         SELECT
-          ID,result_id, comp_unit,declare_date
+        ID,result_id, comp_unit,declare_date
         FROM tblCstad
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

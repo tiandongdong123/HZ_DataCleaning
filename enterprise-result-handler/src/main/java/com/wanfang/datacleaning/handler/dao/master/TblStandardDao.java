@@ -17,10 +17,11 @@ public interface TblStandardDao {
     /**
      * 分页获取起草单位信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      * @return List<StandardDraftUnitBO>
      */
-    List<StandardDraftUnitBO> getBaseDraftUnitInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<StandardDraftUnitBO> getBaseDraftUnitInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 
 }

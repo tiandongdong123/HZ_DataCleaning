@@ -13,10 +13,12 @@
     <!--分页获取资金信息-->
     <select id="getCapInfoByPage" resultMap="CapFieldResultMap">
         SELECT
-          ID,REGCAP,REGCAPCUR,REGCAP_RMB,UPDATE_TIME
+        ID,REGCAP,REGCAPCUR,REGCAP_RMB,UPDATE_TIME
         FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -25,12 +27,8 @@
     <update id="updateCapInfoByKey" parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessCapInfoBO">
         UPDATE tblBusiness
         <set>
-            <if test="regCapRmb != null">
-                REGCAP_RMB = #{regCapRmb},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            REGCAP_RMB = #{regCapRmb},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -42,12 +40,8 @@
         <foreach collection="list" separator=";" item="item">
             UPDATE tblBusiness
             <set>
-                <if test="item.regCapRmb != null">
-                    REGCAP_RMB = #{item.regCapRmb},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                REGCAP_RMB = #{item.regCapRmb},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}

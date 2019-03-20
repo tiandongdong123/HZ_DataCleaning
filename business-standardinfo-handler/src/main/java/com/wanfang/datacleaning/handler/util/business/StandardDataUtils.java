@@ -1,9 +1,8 @@
 package com.wanfang.datacleaning.handler.util.business;
 
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.LoggerEnum;
 import com.wanfang.datacleaning.handler.model.bo.StandardStdTypeBO;
-import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ import java.util.Map;
  */
 public class StandardDataUtils {
 
-    private static final Logger abCodeDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
+    private static final Logger abCodeDataLogger = LoggerFactory.getLogger(LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     private static Map<String, List<StandardStdTypeBO>> stdTypeBOMapWithFilter = new HashMap<>(16);
 
@@ -73,16 +72,8 @@ public class StandardDataUtils {
             return key;
         }
 
-        public void setKey(String key) {
-            this.key = key;
-        }
-
         public String getValue() {
             return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
         }
 
     }
@@ -121,7 +112,7 @@ public class StandardDataUtils {
     /**
      * 缓存标准类型信息(过滤不符合条件的数据)
      *
-     * @param stdTypeBOList
+     * @param stdTypeBOList 标准类型信息集
      */
     public static void cacheStdTypeInfoMapWithFilter(List<StandardStdTypeBO> stdTypeBOList) {
         if (stdTypeBOList != null && stdTypeBOList.size() > 0) {
@@ -183,76 +174,65 @@ public class StandardDataUtils {
      */
     public static String getDrStdType(String stdType) {
         if (StringUtils.isBlank(stdType)) {
-            return "";
+            return StringUtils.EMPTY;
         }
 
-        String drStdType = "";
         String effectLevelName = StandardCodeUtils.getEffectLevelByCode(StringUtils.deleteWhitespace(stdType));
-        if (StringUtils.isEmpty(effectLevelName)) {
-            LoggerUtils.appendWarnLog(abCodeDataLogger, "stdType：【{}】，标准代码文件中不含此代码", stdType);
-            return "";
+        if (StringUtils.isBlank(effectLevelName)) {
+            abCodeDataLogger.warn("stdType：【{}】，标准代码文件中不含此代码", stdType);
+            return StringUtils.EMPTY;
         }
 
-        if (EffectLevelEnum.COUNTRY.getValue().equals(effectLevelName)) {
-            drStdType = EffectLevelEnum.COUNTRY.getKey();
-        } else if (EffectLevelEnum.INDUSTRY.getValue().equals(effectLevelName)) {
-            drStdType = EffectLevelEnum.INDUSTRY.getKey();
-        } else if (EffectLevelEnum.ENTERPRISE.getValue().equals(effectLevelName)) {
-            drStdType = EffectLevelEnum.ENTERPRISE.getKey();
+        EffectLevelEnum[] levelEnums = EffectLevelEnum.values();
+        for (EffectLevelEnum levelEnum : levelEnums) {
+            if (levelEnum.getValue().equals(effectLevelName)) {
+                return levelEnum.getKey();
+            }
         }
-
-        return drStdType;
+        abCodeDataLogger.warn("stdType：【{}】，effectLevelName：【{}】，效力级别枚举不含此值，请确认后添加！", stdType, effectLevelName);
+        return StringUtils.EMPTY;
     }
 
     /**
      * 处理起草标准类型字符串
      *
-     * @param stdTypeList
+     * @param stdTypeList 起草标准类型列表
      * @return String
      */
-    public static String handleStdTypeList(String stdTypeList) {
-        if (stdTypeList == null) {
-            return "";
+    public static String handleDrStdTypeList(String stdTypeList) {
+        if (StringUtils.isBlank(stdTypeList)) {
+            return StringUtils.EMPTY;
         }
 
-        StringBuilder handleResultBuilder = new StringBuilder("");
-        if (stdTypeList.contains(EffectLevelEnum.COUNTRY.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(EffectLevelEnum.COUNTRY.getKey());
+        StringBuilder handleResultBuilder = new StringBuilder();
+        EffectLevelEnum[] levelEnums = EffectLevelEnum.values();
+        for (EffectLevelEnum levelEnum : levelEnums) {
+            if (stdTypeList.contains(levelEnum.getKey())) {
+                handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(levelEnum.getKey());
+            }
         }
-
-        if (stdTypeList.contains(EffectLevelEnum.INDUSTRY.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(EffectLevelEnum.INDUSTRY.getKey());
-        }
-
-        if (stdTypeList.contains(EffectLevelEnum.ENTERPRISE.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(EffectLevelEnum.ENTERPRISE.getKey());
-        }
-
         return handleResultBuilder.toString().replaceFirst(CmnConstant.SEPARATOR_COMMA, "");
     }
 
     /**
      * 是否符合标准状态
      *
-     * @param stdStatus
-     * @return boolean
+     * @param stdStatus 标准状态
+     * @return boolean true：符合
      */
     public static boolean meetStdStatus(String stdStatus) {
-        boolean meetFlag = false;
-
         if (StringUtils.isBlank(stdStatus)) {
             return false;
         }
 
-        if (StandardStatusEnum.XX.getValue().equals(stdStatus)) {
-            meetFlag = true;
-        } else if (StandardStatusEnum.FZ.getValue().equals(stdStatus)) {
-            meetFlag = true;
-        } else if (StandardStatusEnum.ZF.getValue().equals(stdStatus)) {
-            meetFlag = true;
+        stdStatus = StringUtils.deleteWhitespace(stdStatus);
+        StandardStatusEnum[] statusEnums = StandardStatusEnum.values();
+        for (StandardStatusEnum statusEnum : statusEnums) {
+            if (statusEnum.getValue().equals(stdStatus)) {
+                return true;
+            }
         }
-
-        return meetFlag;
+        return false;
     }
 
     /**
@@ -261,7 +241,7 @@ public class StandardDataUtils {
      * @param entName 企业名称
      * @return String[]
      */
-    public static String[] splitEntName(String entName) {
+    private static String[] splitEntName(String entName) {
 
         if (entName.contains(CmnConstant.SEPARATOR_SEMICOLON)) {
             return StringUtils.split(entName, CmnConstant.SEPARATOR_SEMICOLON);

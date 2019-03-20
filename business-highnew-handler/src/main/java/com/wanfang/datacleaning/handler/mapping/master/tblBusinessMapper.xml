@@ -12,10 +12,12 @@
     <!--分页获取高新技术信息-->
     <select id="getHighNewInfoByPage" resultMap="HighNewResultMap">
         SELECT
-          ID,ENTNAME,HIGHNEWENTER,UPDATE_TIME
+        ID,ENTNAME,HIGHNEWENTER,UPDATE_TIME
         FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -25,12 +27,8 @@
             parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessHighNewInfoBO">
         UPDATE tblBusiness
         <set>
-            <if test="highNewEnter != null">
-                HIGHNEWENTER = #{highNewEnter},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            HIGHNEWENTER = #{highNewEnter},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -42,12 +40,8 @@
         <foreach collection="list" separator=";" item="item">
             UPDATE tblBusiness
             <set>
-                <if test="item.highNewEnter != null">
-                    HIGHNEWENTER = #{item.highNewEnter},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                HIGHNEWENTER = #{item.highNewEnter},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}

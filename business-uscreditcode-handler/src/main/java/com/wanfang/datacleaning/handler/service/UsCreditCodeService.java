@@ -10,14 +10,7 @@ package com.wanfang.datacleaning.handler.service;
 public interface UsCreditCodeService {
 
     /**
-     * 缓存统一社会信用代码信息
-     *
-     * @return boolean
+     * 处理统一社会信用代码信息
      */
-    boolean cacheUsCreditCodeInfo();
-
-    /**
-     * 更新统一社会信用代码信息
-     */
-    void updateUsCreditCode();
+    void handleUsCreditCode();
 }

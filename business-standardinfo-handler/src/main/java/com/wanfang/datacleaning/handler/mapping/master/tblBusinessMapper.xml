@@ -16,10 +16,12 @@
     <!--分页获取标准信息-->
     <select id="getStandardInfoByPage" resultMap="StandardFieldResultMap">
         SELECT
-          ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_DRSTANDARD,DRSTANDARD_TYPE_LIST,DRSTANDARD_NUM,UPDATE_TIME
-        FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_DRSTANDARD,DRSTANDARD_TYPE_LIST,DRSTANDARD_NUM,UPDATE_TIME
+        FROM tblbusiness
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -27,20 +29,12 @@
     <!--更新标准信息-->
     <update id="updateStandardInfoByKey"
             parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessStandardInfoBO">
-        UPDATE tblBusiness
+        UPDATE tblbusiness
         <set>
-            <if test="hasDrStandard != null">
-                HAS_DRSTANDARD = #{hasDrStandard},
-            </if>
-            <if test="drStandardTypeList != null and drStandardTypeList != ''">
-                DRSTANDARD_TYPE_LIST = #{drStandardTypeList},
-            </if>
-            <if test="drStandardNum != null">
-                DRSTANDARD_NUM = #{drStandardNum},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            HAS_DRSTANDARD = #{hasDrStandard},
+            DRSTANDARD_TYPE_LIST = #{drStandardTypeList},
+            DRSTANDARD_NUM = #{drStandardNum},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -50,20 +44,12 @@
     <!--批量更新标准信息-->
     <update id="updateBatchStandardInfoByKey" parameterType="java.util.List">
         <foreach collection="list" separator=";" item="item">
-            UPDATE tblBusiness
+            UPDATE tblbusiness
             <set>
-                <if test="item.hasDrStandard != null">
-                    HAS_DRSTANDARD = #{item.hasDrStandard},
-                </if>
-                <if test="item.drStandardTypeList != null and item.drStandardTypeList != ''">
-                    DRSTANDARD_TYPE_LIST = #{item.drStandardTypeList},
-                </if>
-                <if test="item.drStandardNum != null">
-                    DRSTANDARD_NUM = #{item.drStandardNum},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                HAS_DRSTANDARD = #{item.hasDrStandard},
+                DRSTANDARD_TYPE_LIST = #{item.drStandardTypeList},
+                DRSTANDARD_NUM = #{item.drStandardNum},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}

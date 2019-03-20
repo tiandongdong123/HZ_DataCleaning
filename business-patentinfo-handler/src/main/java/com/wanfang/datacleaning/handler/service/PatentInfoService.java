@@ -9,14 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface PatentInfoService {
     /**
-     * 缓存专利类型信息
-     *
-     * @return boolean
+     * 处理专利信息
      */
-    boolean cacheBasePatentTypeInfo();
-
-    /**
-     * 更新专利信息
-     */
-    void updatePatentInfo();
+    void handlePatentInfo();
 }

@@ -20,8 +20,12 @@ import javax.sql.DataSource;
  * @date 2018/5/12
  */
 @Configuration
-@MapperScan(basePackages = "com.wanfang.datacleaning.handler.dao.master", sqlSessionTemplateRef = "masterSqlSessionTemplate")
+@MapperScan(basePackages = MasterDataSourceConfig.BASE_PACKAGES, sqlSessionTemplateRef = "masterSqlSessionTemplate")
 public class MasterDataSourceConfig {
+
+    public static final String BASE_PACKAGES = "com.wanfang.datacleaning.handler.dao.master";
+    private static final String LOCATION_PATTEN = "classpath*:com/wanfang/datacleaning/handler/mapping/master/*Mapper.xml";
+
     @Bean(name = "masterDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.master")
     @Primary
@@ -40,13 +44,13 @@ public class MasterDataSourceConfig {
     public SqlSessionFactory setSqlSessionFactory(@Qualifier("masterDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
-        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:com/wanfang/datacleaning/handler/mapping/master/*Mapper.xml"));
+        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(LOCATION_PATTEN));
         return bean.getObject();
     }
 
     @Bean(name = "masterSqlSessionTemplate")
     @Primary
-    public SqlSessionTemplate setSqlSessionTemplate(@Qualifier("masterSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    public SqlSessionTemplate setSqlSessionTemplate(@Qualifier("masterSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }

@@ -9,6 +9,10 @@ package com.wanfang.datacleaning.handler.model.bo;
  */
 public class PatentPatTypeBO {
     /**
+     * 主键id
+     */
+    private Long id;
+    /**
      * 申请（专利权）人
      */
     private String proposerName;
@@ -20,6 +24,14 @@ public class PatentPatTypeBO {
      * 申请日
      */
     private String appDate;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getProposerName() {
         return proposerName;
@@ -48,7 +60,8 @@ public class PatentPatTypeBO {
     @Override
     public String toString() {
         return "PatentPatTypeBO{" +
-                "proposerName='" + proposerName + '\'' +
+                "id=" + id +
+                ", proposerName='" + proposerName + '\'' +
                 ", patentType='" + patentType + '\'' +
                 ", appDate='" + appDate + '\'' +
                 '}';

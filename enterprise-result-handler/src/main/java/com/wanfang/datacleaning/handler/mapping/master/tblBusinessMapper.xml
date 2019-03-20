@@ -13,9 +13,9 @@
     <select id="getBaseEntNameInfoByPage" resultMap="BaseEntNameResultMap">
         SELECT
           ID,PRIPID, ENTNAME,OPFROM,OPTO
-        FROM tblBusiness
+        FROM tblbusiness
         WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+          ID <![CDATA[ >= ]]> #{idStartPosition}
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

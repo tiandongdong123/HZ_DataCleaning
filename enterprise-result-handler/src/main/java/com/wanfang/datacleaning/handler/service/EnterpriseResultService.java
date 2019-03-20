@@ -9,14 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface EnterpriseResultService {
     /**
-     * 缓存企业(机构)名称信息
-     *
-     * @return boolean
+     * 处理企业成果信息
      */
-    boolean cacheBaseEntNameInfo();
-
-    /**
-     * 同步企业成果信息
-     */
-    void syncEntResultInfo();
+    void handleEntResultInfo();
 }

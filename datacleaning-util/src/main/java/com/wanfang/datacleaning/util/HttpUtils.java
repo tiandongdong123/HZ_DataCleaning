@@ -1,8 +1,6 @@
 package com.wanfang.datacleaning.util;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -55,7 +53,6 @@ public class HttpUtils {
             }
         } catch (Exception e) {
             logger.error("初始化http连接池（init（））出现异常：", e);
-            e.printStackTrace();
         }
     }
 
@@ -86,20 +83,20 @@ public class HttpUtils {
         try {
             // 创建httpget.
             HttpGet httpget = new HttpGet(url);
-            LoggerUtils.appendDebugLog(logger, "executing request: {}", httpget.getURI());
+            logger.debug("executing request: {}", url);
             // 执行get请求.
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {
                 // 获取响应实体
                 HttpEntity entity = response.getEntity();
                 // 打印响应状态
-                LoggerUtils.appendDebugLog(logger, "Response statusLine: {}", response.getStatusLine().toString());
+                logger.debug("Response statusLine: {}", response.getStatusLine().toString());
                 if (entity != null) {
                     // 打印响应内容长度
-                    LoggerUtils.appendDebugLog(logger, "Response content length: {}", entity.getContentLength());
+                    logger.debug("Response content length: {}", entity.getContentLength());
                     // 打印响应内容
                     resultStr = EntityUtils.toString(entity, "UTF-8");
-                    LoggerUtils.appendDebugLog(logger, "Response content: {}", resultStr);
+                    logger.debug("Response content: {}", resultStr);
                 }
             } finally {
                 response.close();
@@ -115,8 +112,7 @@ public class HttpUtils {
         }
 
         long endTime = System.currentTimeMillis();
-        LoggerUtils.appendDebugLog(logger, "requestByGet（）接口耗时：[{}]ms", endTime - startTime);
-
+        logger.debug("url：【{}】，requestByGet（）接口耗时：[{}]ms", url, endTime - startTime);
         return resultStr;
     }
 }

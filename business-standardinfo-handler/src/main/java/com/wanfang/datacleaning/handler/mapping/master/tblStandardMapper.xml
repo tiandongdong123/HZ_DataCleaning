@@ -3,6 +3,7 @@
 <mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblStandardDao">
 
     <resultMap id="BaseStandardTypeResultMap" type="com.wanfang.datacleaning.handler.model.bo.StandardStdTypeBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
         <result column="draft_unit" property="draftUnit" jdbcType="LONGVARCHAR"/>
         <result column="stand_status" property="standardStatus" jdbcType="VARCHAR"/>
         <result column="stand_type" property="standardType" jdbcType="VARCHAR"/>
@@ -12,10 +13,10 @@
     <!--分页获取标准类型信息-->
     <select id="getBaseStandardTypeInfoByPage" resultMap="BaseStandardTypeResultMap">
         SELECT
-          draft_unit, stand_status,stand_type,issue_date
+          ID,draft_unit, stand_status,stand_type,issue_date
         FROM tblStandard
         WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+          ID <![CDATA[ > ]]> #{idStartPosition}
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

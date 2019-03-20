@@ -17,10 +17,11 @@ public interface TblCstadDao {
     /**
      * 分页获取完成单位信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      * @return List<CstadCompUnitBO>
      */
-    List<CstadCompUnitBO> getBaseCompUnitInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<CstadCompUnitBO> getBaseCompUnitInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 
 }

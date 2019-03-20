@@ -1,9 +1,8 @@
 package com.wanfang.datacleaning.handler.util.business;
 
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.LoggerEnum;
 import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.ExcelUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -23,7 +22,7 @@ import java.util.Map;
  */
 public class PostalCodeUtils {
 
-    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
+    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     private static Map<String, List<PostalCodeInfo>> codeMap = new HashMap<>(16);
 
@@ -194,7 +193,7 @@ public class PostalCodeUtils {
                     // 判断邮编是否为空
                     if (StringUtils.isBlank(postalCode)) {
                         abnormalDataCount++;
-                        LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】,sheet：【{}】,行号：【{}】，邮编为空！", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, i + 1);
+                       abnormalDataLogger.warn( "文件：【{}】,sheet：【{}】,行号：【{}】，邮编为空！", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, i + 1);
                         continue;
                     }
 
@@ -212,7 +211,7 @@ public class PostalCodeUtils {
                     if (codeMap.containsKey(postalCode)) {
                         if (existSameData(codeMap.get(postalCode), postalCodeInfo)) {
                             abnormalDataCount++;
-                            LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】,sheet：【{}】，行号：【{}】，邮编：【{}】，邮编-行政区划码已存在！", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, i + 1, postalCode);
+                           abnormalDataLogger.warn( "文件：【{}】,sheet：【{}】，行号：【{}】，邮编：【{}】，邮编-行政区划码已存在！", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, i + 1, postalCode);
                             continue;
                         }
                         codeMap.get(postalCode).add(postalCodeInfo);
@@ -224,7 +223,7 @@ public class PostalCodeUtils {
                 }
             }
         } catch (IOException e) {
-            LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】,sheet：【{}】，cacheCodeMap()出现异常：", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, e);
+           abnormalDataLogger.warn( "文件：【{}】,sheet：【{}】，cacheCodeMap()出现异常：", POSTAL_CODE_FILE_PATH, POSTAL_CODE_FILE_SHEET_NAME, e);
         }
     }
 

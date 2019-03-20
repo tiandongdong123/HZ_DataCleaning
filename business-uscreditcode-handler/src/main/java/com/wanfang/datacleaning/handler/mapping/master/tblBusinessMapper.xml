@@ -13,10 +13,12 @@
     <!--分页获取统一社会信用代码信息-->
     <select id="getUsCreditCodeByPage" resultMap="UsCreditCodeResultMap">
         SELECT
-          ID,PRIPID,CREDITCODE,ORGCODE,UPDATE_TIME
+        ID,PRIPID,CREDITCODE,ORGCODE,UPDATE_TIME
         FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

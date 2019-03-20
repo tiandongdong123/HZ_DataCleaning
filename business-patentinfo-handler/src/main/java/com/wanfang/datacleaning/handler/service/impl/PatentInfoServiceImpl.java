@@ -1,8 +1,7 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.WhetherFlagEnum;
 import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
 import com.wanfang.datacleaning.handler.dao.master.TblPatentDao;
 import com.wanfang.datacleaning.handler.model.bo.BusinessPatentInfoBO;
@@ -10,13 +9,13 @@ import com.wanfang.datacleaning.handler.model.bo.PatentPatTypeBO;
 import com.wanfang.datacleaning.handler.service.PatentInfoService;
 import com.wanfang.datacleaning.handler.util.business.PatentDataUtils;
 import com.wanfang.datacleaning.util.DateUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
+import com.wanfang.datacleaning.util.business.CmnUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,7 +35,7 @@ public class PatentInfoServiceImpl implements PatentInfoService {
     /**
      * 正则表达式：日期
      */
-    private static final String REGEX_DATE = "^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}$";
+    private static final Pattern DATE_PATTERN = Pattern.compile("^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}$");
     /**
      * 更新专利信息成功数量
      */
@@ -46,111 +45,144 @@ public class PatentInfoServiceImpl implements PatentInfoService {
      */
     private int patentInfoUpdFailCount;
 
-    @Autowired
+    @Resource
     private TblBusinessDao tblBusinessDao;
-    @Autowired
+    @Resource
     private TblPatentDao tblPatentDao;
 
     @Override
-    public boolean cacheBasePatentTypeInfo() {
+    public void handlePatentInfo() {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "缓存DB专利表的专利类型信息开始");
+        logger.info("校验信息处理的前提条件开始");
+        boolean meetFlag = meetPrerequisite();
+        logger.info("校验信息处理的前提条件结束,校验结果为【{}】，耗时【{}】ms", meetFlag, System.currentTimeMillis() - startTime);
 
+        if (meetFlag) {
+            startTime = System.currentTimeMillis();
+            logger.info("递归更新DB工商表的专利信息开始，id更新区间为：[{},{}]", CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION);
+            // 递归更新专利信息
+            updatePatentInfoByRecursion(CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
+            logger.info("递归更新DB工商表的专利信息结束，id更新区间为：[{},{}]，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
+                    CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, (patentInfoUpdSuccessCount + patentInfoUpdFailCount), patentInfoUpdSuccessCount, patentInfoUpdFailCount, System.currentTimeMillis() - startTime);
+        }
+    }
+
+    /**
+     * 是否满足前提条件
+     *
+     * @return boolean true：满足
+     */
+    private boolean meetPrerequisite() {
+        // 判断更新起始、结束位置索引是否正确
+        if (CmnConstant.ID_END_POSITION <= CmnConstant.ID_START_POSITION) {
+            logger.warn("idStartPosition：【{}】，idEndPosition：【{}】，更新结束位置小于或等于更新起始位置", CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION);
+            return false;
+        }
+
+        // 缓存专利数据信息
+        boolean cacheSuccessFlag = cacheBasePatentTypeInfo();
+        if (!cacheSuccessFlag) {
+            logger.warn("缓存专利表的专利类型信息失败");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 缓存专利数据信息
+     *
+     * @return boolean true：缓存成功
+     */
+    private boolean cacheBasePatentTypeInfo() {
+        long startTime = System.currentTimeMillis();
+        logger.info("缓存DB专利表的专利类型信息开始");
         // 递归缓存
         cacheBasePatentTypByRecursion(0, CmnConstant.PAGE_SIZE);
 
         int cacheSize = PatentDataUtils.getCachePatTypeInfoMapWithFilterSize();
         if (cacheSize > 0) {
-            LoggerUtils.appendInfoLog(logger, "缓存DB专利表的专利类型信息结束，共缓存【{}】条数据，耗时【{}】ms", cacheSize, System.currentTimeMillis() - startTime);
+            logger.info("缓存DB专利表的专利类型信息结束，共缓存【{}】条数据，耗时【{}】ms", cacheSize, System.currentTimeMillis() - startTime);
             return true;
         }
 
-        LoggerUtils.appendInfoLog(logger, "缓存DB专利表的专利类型信息结束，共缓存【{}】条数据，耗时【{}】ms", 0, System.currentTimeMillis() - startTime);
+        logger.info("缓存DB专利表的专利类型信息结束，共缓存【{}】条数据，耗时【{}】ms", 0, System.currentTimeMillis() - startTime);
         return false;
-    }
-
-    @Override
-    public void updatePatentInfo() {
-        long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的专利信息开始");
-
-        // 递归更新专利信息
-        updatePatentInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
-
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的专利信息结束,共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
-                (patentInfoUpdSuccessCount + patentInfoUpdFailCount), patentInfoUpdSuccessCount, patentInfoUpdFailCount, System.currentTimeMillis() - startTime);
     }
 
     /**
      * 递归缓存专利类型信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param pageSize        每页数量
      */
-    private void cacheBasePatentTypByRecursion(int startIndex, int pageSize) {
-        int pageNum = startIndex / pageSize + 1;
+    private void cacheBasePatentTypByRecursion(int idStartPosition, int pageSize) {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "查询DB专利表的第【{}】页专利类型信息开始", pageNum);
-        List<PatentPatTypeBO> patTypeBOList = tblPatentDao.getBasePatentTypeInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "查询DB专利表的第【{}】页专利类型信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, patTypeBOList.size(), System.currentTimeMillis() - startTime);
+        logger.info("查询DB专利表的专利类型信息开始，idStartPosition：【{}】，pageSize：【{}】", idStartPosition, pageSize);
+        List<PatentPatTypeBO> patTypeBOList = tblPatentDao.getBasePatentTypeInfoByPage(idStartPosition, pageSize);
+        int qryResultSize = patTypeBOList.size();
+        logger.info("查询DB专利表的专利类型信息结束，idStartPosition：【{}】，pageSize：【{}】，共查询到【{}】条数据，耗时【{}】ms", idStartPosition, pageSize, qryResultSize, System.currentTimeMillis() - startTime);
+        if (patTypeBOList.isEmpty()) {
+            return;
+        }
 
-        if (patTypeBOList != null && patTypeBOList.size() > 0) {
-            startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "缓存DB专利表的第【{}】页专利类型信息开始", pageNum);
-            PatentDataUtils.cachePatTypeInfoMapWithFilter(patTypeBOList);
-            LoggerUtils.appendInfoLog(logger, "缓存DB专利表的第【{}】页专利类型信息结束,共缓存【{}】条数据，耗时【{}】ms", pageNum, patTypeBOList.size(), System.currentTimeMillis() - startTime);
+        startTime = System.currentTimeMillis();
+        int lastPosition = patTypeBOList.get(qryResultSize - 1).getId().intValue();
+        logger.info("缓存DB专利表的专利类型信息开始，id区间为：[{},{}]", idStartPosition, lastPosition);
+        PatentDataUtils.cachePatTypeInfoMapWithFilter(patTypeBOList);
+        logger.info("缓存DB专利表的专利类型信息结束，id区间为：[{},{}]，共缓存【{}】条数据，耗时【{}】ms", idStartPosition, lastPosition, qryResultSize, System.currentTimeMillis() - startTime);
 
-            // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (patTypeBOList.size() == CmnConstant.PAGE_SIZE) {
-                cacheBasePatentTypByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
-            }
+        // 若查到的当前页数据数量等于每页数量，则往后再查
+        if (qryResultSize == pageSize) {
+            cacheBasePatentTypByRecursion(lastPosition + 1, CmnConstant.PAGE_SIZE);
         }
     }
 
     /**
      * 递归更新专利信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      */
-    private void updatePatentInfoByRecursion(int startIndex, int pageSize) {
-        int pageNum = startIndex / pageSize + 1;
+    private void updatePatentInfoByRecursion(int idStartPosition, int idEndPosition, int pageSize) {
         long startTime = System.currentTimeMillis();
-        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页专利信息开始", pageNum);
-        List<BusinessPatentInfoBO> patentInfoBOList = tblBusinessDao.getPatentInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页专利信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, patentInfoBOList.size(), System.currentTimeMillis() - startTime);
+        int pageSizeLimit = CmnUtils.handlePageSize(idStartPosition, idEndPosition, pageSize);
+        logger.info("查询DB工商表的专利信息开始，idStartPosition：【{}】，pageSize：【{}】", idStartPosition, pageSize);
+        List<BusinessPatentInfoBO> patentInfoBOList = tblBusinessDao.getPatentInfoByPage(idStartPosition, idEndPosition, pageSizeLimit);
+        int qryResultSize = patentInfoBOList.size();
+        logger.info("查询DB工商表的专利信息结束，idStartPosition：【{}】，pageSize：【{}】，共查询到【{}】条数据，耗时【{}】ms", idStartPosition, pageSize, qryResultSize, System.currentTimeMillis() - startTime);
+        if (patentInfoBOList.isEmpty()) {
+            return;
+        }
 
-        if (patentInfoBOList != null && patentInfoBOList.size() > 0) {
-            startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页专利信息开始", pageNum);
-            List<BusinessPatentInfoBO> batchList = new LinkedList<>();
-            for (int i = 0; i < patentInfoBOList.size(); i++) {
-                batchList.add(patentInfoBOList.get(i));
-                if ((i + 1) % CmnConstant.BATCH_SIZE == 0 || i + 1 == patentInfoBOList.size()) {
-                    // 批量更新专利信息
-                    if (updateBatchPatentInfo(batchList)) {
-                        patentInfoUpdSuccessCount += batchList.size();
-                    } else {
-                        patentInfoUpdFailCount += batchList.size();
-                    }
-
-                    batchList = new LinkedList<>();
+        startTime = System.currentTimeMillis();
+        int lastPosition = patentInfoBOList.get(qryResultSize - 1).getId().intValue();
+        logger.info("更新DB工商表的专利信息开始，id区间为：[{},{}]", idStartPosition, lastPosition);
+        List<BusinessPatentInfoBO> batchList = new LinkedList<>();
+        for (int i = 0; i < qryResultSize; i++) {
+            batchList.add(patentInfoBOList.get(i));
+            if ((i + 1) % CmnConstant.BATCH_SIZE == 0 || i + 1 == qryResultSize) {
+                // 批量更新专利信息
+                if (updateBatchPatentInfo(batchList)) {
+                    patentInfoUpdSuccessCount += batchList.size();
+                } else {
+                    patentInfoUpdFailCount += batchList.size();
                 }
+                batchList = new LinkedList<>();
             }
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页专利信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, patentInfoBOList.size(), System.currentTimeMillis() - startTime);
+        }
+        logger.info("更新DB工商表的专利信息结束，id区间为：[{},{}]，共更新【{}】条数据，耗时【{}】ms", idStartPosition, lastPosition, qryResultSize, System.currentTimeMillis() - startTime);
 
-            // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (patentInfoBOList.size() == CmnConstant.PAGE_SIZE) {
-                updatePatentInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
-            }
+        // 若查到的当前页数据数量等于每页数量，则往后再查
+        if (qryResultSize == pageSize && lastPosition < idEndPosition) {
+            updatePatentInfoByRecursion(lastPosition + 1, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
         }
     }
 
     /**
      * 处理专利信息
      *
-     * @param patentInfoBO
+     * @param patentInfoBO 专利信息
      * @return BusinessPatentInfoBO
      */
     private BusinessPatentInfoBO handlePatentInfo(BusinessPatentInfoBO patentInfoBO) {
@@ -171,17 +203,17 @@ public class PatentInfoServiceImpl implements PatentInfoService {
             return patentInfoBO;
         }
 
-        int hasPatent = CmnEnum.WhetherFlagEnum.NO.getValue();
+        int hasPatent = WhetherFlagEnum.NO.getValue();
         long patentNum = 0;
-        StringBuilder patTypeListBuilder = new StringBuilder("");
+        StringBuilder patTypeListBuilder = new StringBuilder();
         for (PatentPatTypeBO patTypeBO : patTypeBOList) {
             // 判断“申请日”是否在经营期限内
             if (!isInOperationPeriod(patentInfoBO.getOpFrom(), patentInfoBO.getOpTo(), StringUtils.deleteWhitespace(patTypeBO.getAppDate()))) {
                 continue;
             }
-            hasPatent = CmnEnum.WhetherFlagEnum.YES.getValue();
+            hasPatent = WhetherFlagEnum.YES.getValue();
             // 专利类型枚举值列表，格式：1,2,3
-            patTypeListBuilder.append(PatentDataUtils.getPatentTypeCode(patTypeBO.getPatentType()));
+            patTypeListBuilder.append(CmnConstant.SEPARATOR_COMMA).append(PatentDataUtils.getPatentTypeCode(patTypeBO.getPatentType(), patTypeBO.getPatentType()));
             // 专利数量
             patentNum++;
         }
@@ -196,26 +228,26 @@ public class PatentInfoServiceImpl implements PatentInfoService {
     /**
      * 批量更新专利信息
      *
-     * @param patentInfoBOList
+     * @param patentInfoBOList 专利信息集合
      * @return boolean
      */
     private boolean updateBatchPatentInfo(List<BusinessPatentInfoBO> patentInfoBOList) {
         List<BusinessPatentInfoBO> handleList = new ArrayList<>();
+        long idStartPosition = patentInfoBOList.get(0).getId();
+        long idEndPosition = patentInfoBOList.get(patentInfoBOList.size() - 1).getId();
         try {
             long startTime = System.currentTimeMillis();
             for (BusinessPatentInfoBO patentInfoBO : patentInfoBOList) {
-                if (patentInfoBO != null) {
-                    handleList.add(handlePatentInfo(patentInfoBO));
-                }
+                handleList.add(handlePatentInfo(patentInfoBO));
             }
-            LoggerUtils.appendInfoLog(logger, "处理【{}】条专利信息共耗时【{}】ms", patentInfoBOList.size(), System.currentTimeMillis() - startTime);
+            logger.info("id区间为：[{},{}]，处理专利信息【{}】条，共耗时【{}】ms", idStartPosition, idEndPosition, patentInfoBOList.size(), System.currentTimeMillis() - startTime);
             startTime = System.currentTimeMillis();
-            if (handleList.size() > 0) {
+            if (!handleList.isEmpty()) {
                 tblBusinessDao.updateBatchPatentInfoByKey(handleList);
             }
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条专利信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
+            logger.info("id区间为：[{},{}]，更新DB工商表专利信息【{}】条，共耗时【{}】ms", idStartPosition, idEndPosition, handleList.size(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "参数：【{}】，批量更新专利信息(updateBatchPatentInfo())出现异常：", JSON.toJSONString(handleList), e);
+            logger.error("id区间为：[{},{}]，批量更新专利信息出现异常：", idStartPosition, idEndPosition, e);
             return false;
         }
 
@@ -235,12 +267,13 @@ public class PatentInfoServiceImpl implements PatentInfoService {
             return true;
         }
 
-        if (Pattern.matches(REGEX_DATE, checkDateStr)) {
+        if (DATE_PATTERN.matcher(checkDateStr).matches()) {
             Date checkDate = convertStringToDate(checkDateStr.replace(".", "-"));
             boolean inFlag = checkDate == null || (startDate == null && endDate == null)
                     || (startDate == null && checkDate.compareTo(endDate) <= 0)
                     || (endDate == null && checkDate.compareTo(startDate) >= 0)
-                    || (checkDate.compareTo(startDate) >= 0 && checkDate.compareTo(endDate) <= 0);
+                    || (startDate != null && endDate != null && checkDate.compareTo(startDate) >= 0 && checkDate.compareTo(endDate) <= 0);
+            logger.debug("startDate：【{}】，startDate：【{}】，checkDateStr：【{}】，检验结果：【{}】", startDate, endDate, checkDateStr, inFlag);
             return inFlag;
         }
 
@@ -255,7 +288,7 @@ public class PatentInfoServiceImpl implements PatentInfoService {
      */
     private Date convertStringToDate(String dateStr) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT);
             return sdf.parse(dateStr);
         } catch (ParseException e) {
             return null;
@@ -265,11 +298,11 @@ public class PatentInfoServiceImpl implements PatentInfoService {
     /**
      * 初始化专利相关信息
      *
-     * @param patentInfoBO
+     * @param patentInfoBO 专利相关信息
      * @return BusinessPatentInfoBO
      */
     private BusinessPatentInfoBO initBusinessPatentInfoBO(BusinessPatentInfoBO patentInfoBO) {
-        patentInfoBO.setHasPatent(CmnEnum.WhetherFlagEnum.NO.getValue());
+        patentInfoBO.setHasPatent(WhetherFlagEnum.NO.getValue());
         patentInfoBO.setPatentTypeList("");
         patentInfoBO.setPatentNum(0L);
         return patentInfoBO;

@@ -32,6 +32,10 @@ public class BusinessDataUtils {
         List<BusinessEntNameBO> entNameBOList;
 
         for (BusinessEntNameBO entNameBO : businessEntNameBOList) {
+            // 判断pripid是否为空
+            if (StringUtils.isBlank(entNameBO.getPripid())) {
+                continue;
+            }
             // 判断企业名称是否为空
             if (StringUtils.isBlank(entNameBO.getEntName())) {
                 continue;

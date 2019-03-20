@@ -22,7 +22,7 @@
     <!--批量添加企业成果信息-->
     <insert id="addBatch" parameterType="java.util.List">
         <foreach collection="list" separator=";" item="item">
-            INSERT INTO tblPatentResult (
+            INSERT INTO tblpatentresult_201807_08 (
             PRIPID,
             ENTNAME,
             RESULT_NUM,

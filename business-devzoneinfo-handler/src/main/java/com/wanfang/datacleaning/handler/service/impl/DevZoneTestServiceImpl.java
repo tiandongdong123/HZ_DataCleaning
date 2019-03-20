@@ -6,16 +6,16 @@ import com.wanfang.datacleaning.handler.model.bo.DevZoneInfoBO;
 import com.wanfang.datacleaning.handler.service.DevZoneTestService;
 import com.wanfang.datacleaning.handler.util.business.YangZhouDevZoneUtils;
 import com.wanfang.datacleaning.util.ExcelUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
+import com.wanfang.datacleaning.util.business.CmnUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.List;
@@ -40,49 +40,49 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
      */
     private int failCount;
 
-    @Autowired
+    @Resource
     private TblBusinessDao tblBusinessDao;
 
     /**
-     * 查找开发去企业
+     * 查找开发区企业
      */
     @Override
     public void findDevZoneInfo() {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的开发区信息开始");
-
+        logger.info("递归更新DB工商表的开发区信息开始，id更新区间为：[{},{}]", CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION);
         // 递归更新开发区信息
-        updateDevZoneInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
-
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的开发区信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
-                (successCount + failCount), successCount, failCount, System.currentTimeMillis() - startTime);
-
+        updateDevZoneInfoByRecursion(CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
+        logger.info("递归更新DB工商表的开发区信息结束，id更新区间为：[{},{}]，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
+                CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, (successCount + failCount), successCount, failCount, System.currentTimeMillis() - startTime);
     }
 
     /**
      * 递归更新开发区信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      */
-    private void updateDevZoneInfoByRecursion(int startIndex, int pageSize) {
-        int pageNum = startIndex / pageSize + 1;
+    private void updateDevZoneInfoByRecursion(int idStartPosition, int idEndPosition, int pageSize) {
         long startTime = System.currentTimeMillis();
-        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页开发区信息开始", pageNum);
-        List<DevZoneInfoBO> devZoneInfoBOList = tblBusinessDao.getLatLonInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页开发区信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, devZoneInfoBOList.size(), System.currentTimeMillis() - startTime);
+        int pageSizeLimit = CmnUtils.handlePageSize(idStartPosition, idEndPosition, pageSize);
+        logger.info("查询DB工商表的开发区信息开始，idStartPosition：【{}】，pageSize：【{}】", idStartPosition, pageSize);
+        List<DevZoneInfoBO> devZoneInfoBOList = tblBusinessDao.getLatLonInfoByPage(idStartPosition, idEndPosition, pageSizeLimit);
+        int qryResultSize = devZoneInfoBOList.size();
+        logger.info("查询DB工商表的开发区信息结束，idStartPosition：【{}】，pageSize：【{}】，共查询到【{}】条数据，耗时【{}】ms", idStartPosition, pageSize, qryResultSize, System.currentTimeMillis() - startTime);
+        if (devZoneInfoBOList.isEmpty()) {
+            return;
+        }
 
-        if (devZoneInfoBOList != null && devZoneInfoBOList.size() > 0) {
-            startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "记录DB工商表的第【{}】页开发区信息开始", pageNum);
-            readWriteExcel(devZoneInfoBOList);
-            LoggerUtils.appendInfoLog(logger, "记录DB工商表的第【{}】页开发区信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, successCount, System.currentTimeMillis() - startTime);
+        startTime = System.currentTimeMillis();
+        int lastPosition = devZoneInfoBOList.get(qryResultSize - 1).getId().intValue();
+        logger.info("记录DB工商表的开发区信息开始，id区间为：[{},{}]", idStartPosition, lastPosition);
+        readWriteExcel(devZoneInfoBOList);
+        logger.info("记录DB工商表的开发区信息结束，id区间为：[{},{}]，共更新【{}】条数据，耗时【{}】ms", idStartPosition, lastPosition, successCount, System.currentTimeMillis() - startTime);
 
-            // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (devZoneInfoBOList.size() == CmnConstant.PAGE_SIZE) {
-                updateDevZoneInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
-            }
+        // 若查到的当前页数据数量等于每页数量，则往后再查
+        if (qryResultSize == pageSize && lastPosition < idEndPosition) {
+            updateDevZoneInfoByRecursion(lastPosition + 1, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
         }
     }
 
@@ -114,7 +114,7 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
             }
 
             // 处理源文件信息
-            sheet = handleInputWorkbook(sheet, devZoneInfoBOList);
+            handleInputWorkbook(sheet, devZoneInfoBOList);
 
             // 输出流
             String outFileFullPath = DevZoneTestServiceImpl.class.getClassLoader().getResource(FILE_PATH).getPath();
@@ -126,11 +126,11 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
             fileOutputStream.flush();
             fileOutputStream.close();
         } catch (FileNotFoundException e) {
-            LoggerUtils.appendErrorLog(logger, "文件：【{}】，文件找不到：", FILE_PATH, e);
+            logger.error("文件：【{}】，文件找不到：", FILE_PATH, e);
         } catch (IOException e) {
-            LoggerUtils.appendErrorLog(logger, "文件：【{}】，readWriteExcel()出现IOException异常：", FILE_PATH, e);
+            logger.error("文件：【{}】，readWriteExcel()出现IOException异常：", FILE_PATH, e);
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "文件：【{}】，readWriteExcel()出现异常：", FILE_PATH, e);
+            logger.error("文件：【{}】，readWriteExcel()出现异常：", FILE_PATH, e);
         } finally {
             closeOutStream(fileOutputStream);
         }
@@ -155,8 +155,8 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
     /**
      * 处理源文件信息
      *
-     * @param sheet
-     * @param devZoneInfoBOList
+     * @param sheet             sheet
+     * @param devZoneInfoBOList 开发区信息集合
      * @return Workbook
      */
     private Sheet handleInputWorkbook(Sheet sheet, List<DevZoneInfoBO> devZoneInfoBOList) {
@@ -179,7 +179,6 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
                 successCount++;
             }
         }
-
         return sheet;
     }
 
@@ -204,15 +203,17 @@ public class DevZoneTestServiceImpl implements DevZoneTestService {
     /**
      * 关闭输出流
      *
-     * @param outputStream
+     * @param outputStream 输出流
      */
     private void closeOutStream(OutputStream outputStream) {
         if (outputStream != null) {
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                LoggerUtils.appendErrorLog(logger, "输出流关闭异常：", e);
-            }
+            return;
+        }
+
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            logger.error("输出流关闭异常：", e);
         }
     }
 }

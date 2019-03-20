@@ -19,29 +19,33 @@ import javax.sql.DataSource;
  * @date 2018/5/12
  */
 @Configuration
-@MapperScan(basePackages = "com.wanfang.datacleaning.handler.dao.slave", sqlSessionTemplateRef = "knowledgeBaseSqlSessionTemplate")
+@MapperScan(basePackages = SlaveDataSourceConfig.BASE_PACKAGES, sqlSessionTemplateRef = "slaveSqlSessionTemplate")
 public class SlaveDataSourceConfig {
-    @Bean(name = "knowledgeBaseDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.knowledge-base")
+
+    public static final String BASE_PACKAGES = "com.wanfang.datacleaning.handler.dao.slave";
+    private static final String LOCATION_PATTEN = "classpath*:com/wanfang/datacleaning/handler/mapping/slave/*Mapper.xml";
+
+    @Bean(name = "slaveDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.slave")
     public DataSource setDataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Bean(name = "knowledgeBaseTransactionManager")
-    public DataSourceTransactionManager setTransactionManager(@Qualifier("knowledgeBaseDataSource") DataSource dataSource) {
+    @Bean(name = "slaveTransactionManager")
+    public DataSourceTransactionManager setTransactionManager(@Qualifier("slaveDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Bean(name = "knowledgeBaseSqlSessionFactory")
-    public SqlSessionFactory setSqlSessionFactory(@Qualifier("knowledgeBaseDataSource") DataSource dataSource) throws Exception {
+    @Bean(name = "slaveSqlSessionFactory")
+    public SqlSessionFactory setSqlSessionFactory(@Qualifier("slaveDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
-        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:com/wanfang/datacleaning/handler/mapping/slave/*Mapper.xml"));
+        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(LOCATION_PATTEN));
         return bean.getObject();
     }
 
-    @Bean(name = "knowledgeBaseSqlSessionTemplate")
-    public SqlSessionTemplate setSqlSessionTemplate(@Qualifier("knowledgeBaseSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    @Bean(name = "slaveSqlSessionTemplate")
+    public SqlSessionTemplate setSqlSessionTemplate(@Qualifier("slaveSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }

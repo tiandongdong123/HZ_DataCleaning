@@ -116,9 +116,9 @@ public class PropertiesUtils {
      * 获取指定properties文件中指定key的值
      *
      * @param prop
-     * @param resourceFilePath
-     * @param key
-     * @return
+     * @param resourceFilePath classpath下的文件路径
+     * @param key              properties文件中的key
+     * @return String
      * @throws IOException
      */
     private static String getValue(Properties prop, String resourceFilePath, String key) throws IOException {
@@ -133,9 +133,9 @@ public class PropertiesUtils {
     /**
      * 获取指定properties文件中指定key的值
      *
-     * @param resourceFilePath
-     * @param key
-     * @return
+     * @param resourceFilePath classpath下的文件路径
+     * @param key              properties文件中的key
+     * @return String
      * @throws IOException
      */
     private static String getValueBySpecFile(String resourceFilePath, String key) throws IOException {

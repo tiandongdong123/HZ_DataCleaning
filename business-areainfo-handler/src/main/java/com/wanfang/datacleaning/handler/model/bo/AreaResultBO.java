@@ -1,6 +1,6 @@
 package com.wanfang.datacleaning.handler.model.bo;
 
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.AreaLevelEnum;
 
 /**
  * @author yifei
@@ -15,7 +15,7 @@ public class AreaResultBO {
     /**
      * 行政区等级
      */
-    private CmnEnum.AreaLevelEnum areaLevelEnum;
+    private AreaLevelEnum areaLevelEnum;
     /**
      * 行政区信息
      */
@@ -29,11 +29,11 @@ public class AreaResultBO {
         this.existFlag = existFlag;
     }
 
-    public CmnEnum.AreaLevelEnum getAreaLevelEnum() {
+    public AreaLevelEnum getAreaLevelEnum() {
         return areaLevelEnum;
     }
 
-    public void setAreaLevelEnum(CmnEnum.AreaLevelEnum areaLevelEnum) {
+    public void setAreaLevelEnum(AreaLevelEnum areaLevelEnum) {
         this.areaLevelEnum = areaLevelEnum;
     }
 

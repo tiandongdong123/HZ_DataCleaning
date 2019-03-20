@@ -11,10 +11,12 @@
     <!--分页获取申请（专利权）人信息-->
     <select id="getBaseProposerNameInfoByPage" resultMap="BaseProposerNameResultMap">
         SELECT
-          ID,patent_id, proposer_name,app_date
-        FROM tblPatent
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        ID,patent_id, proposer_name,app_date
+        FROM tblpatent
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

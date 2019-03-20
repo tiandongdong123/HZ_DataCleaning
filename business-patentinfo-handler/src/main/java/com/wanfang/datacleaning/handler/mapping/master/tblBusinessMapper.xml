@@ -17,10 +17,12 @@
     <!--分页获取专利信息-->
     <select id="getPatentInfoByPage" resultMap="PatentFieldResultMap">
         SELECT
-          ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_PATENT,PATENT_TYPE_LIST,PATENT_NUM,UPDATE_TIME
-        FROM tblBusiness
-        WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+        ID,PRIPID,ENTNAME,OPFROM,OPTO,HAS_PATENT,PATENT_TYPE_LIST,PATENT_NUM,UPDATE_TIME
+        FROM tblbusiness
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -28,20 +30,12 @@
     <!--更新专利信息-->
     <update id="updatePatentInfoByKey"
             parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessPatentInfoBO">
-        UPDATE tblBusiness
+        UPDATE tblbusiness
         <set>
-            <if test="hasPatent != null">
-                HAS_PATENT = #{hasPatent},
-            </if>
-            <if test="patentTypeList != null and patentTypeList != ''">
-                PATENT_TYPE_LIST = #{patentTypeList},
-            </if>
-            <if test="patentNum != null">
-                PATENT_NUM = #{patentNum},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            HAS_PATENT = #{hasPatent},
+            PATENT_TYPE_LIST = #{patentTypeList},
+            PATENT_NUM = #{patentNum},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -51,20 +45,12 @@
     <!--批量更新专利信息-->
     <update id="updateBatchPatentInfoByKey" parameterType="java.util.List">
         <foreach collection="list" separator=";" item="item">
-            UPDATE tblBusiness
+            UPDATE tblbusiness
             <set>
-                <if test="item.hasPatent != null">
-                    HAS_PATENT = #{item.hasPatent},
-                </if>
-                <if test="item.patentTypeList != null and item.patentTypeList != ''">
-                    PATENT_TYPE_LIST = #{item.patentTypeList},
-                </if>
-                <if test="item.patentNum != null">
-                    PATENT_NUM = #{item.patentNum},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                HAS_PATENT = #{item.hasPatent},
+                PATENT_TYPE_LIST = #{item.patentTypeList},
+                PATENT_NUM = #{item.patentNum},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}

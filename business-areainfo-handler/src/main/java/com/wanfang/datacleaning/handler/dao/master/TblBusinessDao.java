@@ -18,11 +18,12 @@ public interface TblBusinessDao {
     /**
      * 分页获取行政区划信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      * @return List<BusinessAreaInfoBO>
      */
-    List<BusinessAreaInfoBO> getAreaInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<BusinessAreaInfoBO> getAreaInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 
     /**
      * 更新行政区划信息
@@ -43,9 +44,10 @@ public interface TblBusinessDao {
     /**
      * 分页获取行政区划信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
-     * @return List<BusinessAreaInfoBO>
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
+     * @return List<ShortBusinessAreaInfoBO>
      */
-    List<ShortBusinessAreaInfoBO> getShortAreaInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<ShortBusinessAreaInfoBO> getShortAreaInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("idEndPosition") int idEndPosition, @Param("pageSize") int pageSize);
 }

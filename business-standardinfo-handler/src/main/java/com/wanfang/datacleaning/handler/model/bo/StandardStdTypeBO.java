@@ -12,6 +12,10 @@ import java.util.Date;
  */
 public class StandardStdTypeBO {
     /**
+     * 主键id
+     */
+    private Long id;
+    /**
      * 起草单位
      */
     private String draftUnit;
@@ -27,6 +31,14 @@ public class StandardStdTypeBO {
      * 发布日期
      */
     private Date issueDate;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getDraftUnit() {
         return draftUnit;
@@ -63,10 +75,11 @@ public class StandardStdTypeBO {
     @Override
     public String toString() {
         return "StandardStdTypeBO{" +
-                "draftUnit='" + draftUnit + '\'' +
+                "id=" + id +
+                ", draftUnit='" + draftUnit + '\'' +
                 ", standardStatus='" + standardStatus + '\'' +
                 ", standardType='" + standardType + '\'' +
-                ", issueDate='" + issueDate + '\'' +
+                ", issueDate=" + issueDate +
                 '}';
     }
 }

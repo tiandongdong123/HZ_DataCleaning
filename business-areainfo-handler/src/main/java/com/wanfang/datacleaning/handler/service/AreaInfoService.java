@@ -7,7 +7,7 @@ package com.wanfang.datacleaning.handler.service;
 public interface AreaInfoService {
 
     /**
-     * 更新行政区划信息
+     * 处理行政区划信息
      */
-    void updateAreaInfo();
+    void handleAreaInfo();
 }

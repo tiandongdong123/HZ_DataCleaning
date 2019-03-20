@@ -17,9 +17,9 @@ public interface TblPatentDao {
     /**
      * 分页获取专利类型信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param pageSize        每页数量
      * @return List<PatentPatTypeBO>
      */
-    List<PatentPatTypeBO> getBasePatentTypeInfoByPage(@Param("startIndex") int startIndex, @Param("pageSize") int pageSize);
+    List<PatentPatTypeBO> getBasePatentTypeInfoByPage(@Param("idStartPosition") int idStartPosition, @Param("pageSize") int pageSize);
 }

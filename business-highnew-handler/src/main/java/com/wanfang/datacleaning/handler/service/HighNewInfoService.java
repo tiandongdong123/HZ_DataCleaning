@@ -9,7 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface HighNewInfoService {
     /**
-     * 更新高新信息
+     * 处理高新信息
      */
-    void updateHighNewInfo();
+    void handleHighNewInfo();
 }

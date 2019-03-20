@@ -3,7 +3,6 @@ package com.wanfang.datacleaning.handler.util.business;
 import com.wanfang.datacleaning.handler.util.PolygonUtils;
 import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.ExcelUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -43,7 +42,6 @@ public class YangZhouDevZoneUtils {
      */
     public static boolean isInDevZone(double lon, double lat) {
         Point2D.Double pointDouble = new Point2D.Double(lon, lat);
-
         return isInDevZone(pointDouble);
     }
 
@@ -89,7 +87,7 @@ public class YangZhouDevZoneUtils {
                 }
             }
         } catch (IOException e) {
-            LoggerUtils.appendErrorLog(logger, "文件：【{}】，sheet：【{}】，缓存扬州高新区经纬度出现异常：", FILE_PATH, SHEET_NAME, e);
+            logger.error("文件：【{}】，sheet：【{}】，缓存扬州高新区经纬度出现异常：", FILE_PATH, SHEET_NAME, e);
         }
     }
 }

@@ -1,10 +1,16 @@
 package com.wanfang.datacleaning.handler.util.business;
 
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
+import com.wanfang.datacleaning.handler.constant.LoggerEnum;
 import com.wanfang.datacleaning.handler.model.bo.PatentPatTypeBO;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *    
@@ -14,7 +20,7 @@ import java.util.*;
  *  @Version  V1.0   
  */
 public class PatentDataUtils {
-
+    private static final Logger abnormalCodeDataLogger = LoggerFactory.getLogger(LoggerEnum.ABNORMAL_CODE_DATA.getValue());
     private static Map<String, List<PatentPatTypeBO>> patTypeBOMapWithFilter = new HashMap<>(16);
 
     private PatentDataUtils() {
@@ -64,54 +70,46 @@ public class PatentDataUtils {
             return key;
         }
 
-        public void setKey(String key) {
-            this.key = key;
-        }
-
         public String getValue() {
             return value;
         }
-
-        public void setValue(String value) {
-            this.value = value;
-        }
-
     }
 
     /**
      * 缓存专利类型信息(过滤不符合条件的数据，如：个人)
      *
-     * @param patTypeBOList
+     * @param patTypeBOList 专利类型信息集合
      */
     public static void cachePatTypeInfoMapWithFilter(List<PatentPatTypeBO> patTypeBOList) {
-        if (patTypeBOList != null && patTypeBOList.size() > 0) {
-            String[] propNameArray;
-            String splitPropName;
-            List<PatentPatTypeBO> typeBOList;
-            String propNamesWithoutWhitespace;
+        if (patTypeBOList == null || patTypeBOList.isEmpty()) {
+            return;
+        }
 
-            for (PatentPatTypeBO patTypeBO : patTypeBOList) {
-                if (patTypeBO == null || StringUtils.isBlank(patTypeBO.getProposerName())) {
+        String[] propNameArray;
+        String splitPropName;
+        List<PatentPatTypeBO> typeBOList;
+        String propNamesWithoutWhitespace;
+        for (PatentPatTypeBO patTypeBO : patTypeBOList) {
+            if (patTypeBO == null || StringUtils.isBlank(patTypeBO.getProposerName())) {
+                continue;
+            }
+
+            // 去除空白字符
+            propNamesWithoutWhitespace = StringUtils.deleteWhitespace(patTypeBO.getProposerName());
+            // 分隔企业名称
+            propNameArray = splitEntName(propNamesWithoutWhitespace);
+            for (int j = 0; j < propNameArray.length; j++) {
+                splitPropName = propNameArray[j];
+                if (StringUtils.isEmpty(splitPropName)) {
                     continue;
                 }
 
-                // 去除空白字符
-                propNamesWithoutWhitespace = StringUtils.deleteWhitespace(patTypeBO.getProposerName());
-                // 分隔企业名称
-                propNameArray = splitEntName(propNamesWithoutWhitespace);
-                for (int j = 0; j < propNameArray.length; j++) {
-                    splitPropName = propNameArray[j];
-                    if (StringUtils.isEmpty(splitPropName)) {
-                        continue;
-                    }
-
-                    if (patTypeBOMapWithFilter.containsKey(splitPropName)) {
-                        patTypeBOMapWithFilter.get(splitPropName).add(patTypeBO);
-                    } else {
-                        typeBOList = new LinkedList<>();
-                        typeBOList.add(patTypeBO);
-                        patTypeBOMapWithFilter.put(splitPropName, typeBOList);
-                    }
+                if (patTypeBOMapWithFilter.containsKey(splitPropName)) {
+                    patTypeBOMapWithFilter.get(splitPropName).add(patTypeBO);
+                } else {
+                    typeBOList = new LinkedList<>();
+                    typeBOList.add(patTypeBO);
+                    patTypeBOMapWithFilter.put(splitPropName, typeBOList);
                 }
             }
         }
@@ -139,50 +137,40 @@ public class PatentDataUtils {
      * 获取专利类型code
      *
      * @param patentTypeName 专利类型名称
-     * @return String
+     * @param defaultValue   默认值
+     * @return String 未匹配到专利类型时，则返回默认值
      */
-    public static String getPatentTypeCode(String patentTypeName) {
-        String drStdType = "";
+    public static String getPatentTypeCode(String patentTypeName, String defaultValue) {
+        patentTypeName = StringUtils.deleteWhitespace(patentTypeName);
 
-        if (StringUtils.isBlank(patentTypeName)) {
-            return drStdType;
+        PatentTypeEnum[] typeEnums = PatentTypeEnum.values();
+        for (PatentTypeEnum typeEnum : typeEnums) {
+            if (typeEnum.getValue().equals(patentTypeName)) {
+                return typeEnum.getKey();
+            }
         }
-
-        if (PatentTypeEnum.APPEARANCE.getValue().equals(patentTypeName)) {
-            drStdType = PatentTypeEnum.APPEARANCE.getKey();
-        } else if (PatentTypeEnum.INVENTION.getValue().equals(patentTypeName)) {
-            drStdType = PatentTypeEnum.INVENTION.getKey();
-        } else if (PatentTypeEnum.UTILITY_MODEL.getValue().equals(patentTypeName)) {
-            drStdType = PatentTypeEnum.UTILITY_MODEL.getKey();
-        }
-
-        return drStdType;
+        abnormalCodeDataLogger.warn("专利类型：【{}】在枚举中不存在！", patentTypeName);
+        return defaultValue;
     }
 
     /**
      * 处理专利类型字符串
      *
-     * @param patTypeList
+     * @param patTypeList 专利类型列表
      * @return String
      */
     public static String handlePatTypeList(String patTypeList) {
-        if (patTypeList == null) {
-            return "";
+        if (StringUtils.isBlank(patTypeList)) {
+            return StringUtils.EMPTY;
         }
 
-        StringBuilder handleResultBuilder = new StringBuilder("");
-        if (patTypeList.contains(PatentTypeEnum.APPEARANCE.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(PatentTypeEnum.APPEARANCE.getKey());
+        StringBuilder handleResultBuilder = new StringBuilder();
+        PatentTypeEnum[] typeEnums = PatentTypeEnum.values();
+        for (PatentTypeEnum typeEnum : typeEnums) {
+            if (patTypeList.contains(typeEnum.getKey())) {
+                handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(typeEnum.getKey());
+            }
         }
-
-        if (patTypeList.contains(PatentTypeEnum.INVENTION.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(PatentTypeEnum.INVENTION.getKey());
-        }
-
-        if (patTypeList.contains(PatentTypeEnum.UTILITY_MODEL.getKey())) {
-            handleResultBuilder.append(CmnConstant.SEPARATOR_COMMA).append(PatentTypeEnum.UTILITY_MODEL.getKey());
-        }
-
         return handleResultBuilder.toString().replaceFirst(CmnConstant.SEPARATOR_COMMA, "");
     }
 
@@ -192,7 +180,7 @@ public class PatentDataUtils {
      * @param entName 企业名称
      * @return String[]
      */
-    public static String[] splitEntName(String entName) {
+    private static String[] splitEntName(String entName) {
 
         if (entName.contains(CmnConstant.SEPARATOR_SEMICOLON)) {
             return StringUtils.split(entName, CmnConstant.SEPARATOR_SEMICOLON);

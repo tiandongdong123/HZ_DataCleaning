@@ -3,6 +3,7 @@
 <mapper namespace="com.wanfang.datacleaning.handler.dao.master.TblPatentDao">
 
     <resultMap id="BasePatentTypeResultMap" type="com.wanfang.datacleaning.handler.model.bo.PatentPatTypeBO">
+        <id column="ID" property="id" jdbcType="BIGINT"/>
         <result column="proposer_name" property="proposerName" jdbcType="LONGVARCHAR"/>
         <result column="patent_type" property="patentType" jdbcType="VARCHAR"/>
         <result column="app_date" property="appDate" jdbcType="VARCHAR"/>
@@ -11,10 +12,10 @@
     <!--分页获取专利类型信息-->
     <select id="getBasePatentTypeInfoByPage" resultMap="BasePatentTypeResultMap">
         SELECT
-          proposer_name, patent_type,app_date
-        FROM tblPatent
+          ID,proposer_name, patent_type,app_date
+        FROM tblpatent
         WHERE
-          ID <![CDATA[ > ]]> #{startIndex}
+          ID <![CDATA[ >= ]]> #{idStartPosition}
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

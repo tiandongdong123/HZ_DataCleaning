@@ -1,9 +1,8 @@
 package com.wanfang.datacleaning.handler.util.business;
 
-import com.wanfang.datacleaning.handler.constant.CmnEnum;
+import com.wanfang.datacleaning.handler.constant.LoggerEnum;
 import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.ExcelUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -24,7 +23,7 @@ import java.util.HashMap;
 public class HighNewEnterUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(HighNewEnterUtils.class);
-    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(CmnEnum.LoggerEnum.ABNORMAL_CODE_DATA.getValue());
+    private static final Logger abnormalDataLogger = LoggerFactory.getLogger(LoggerEnum.ABNORMAL_CODE_DATA.getValue());
 
     /**
      * 高新企业
@@ -93,12 +92,12 @@ public class HighNewEnterUtils {
                     entName = StringUtils.deleteWhitespace(ExcelUtils.getStringValue(row.getCell(0)));
                     // 判断企业名称是否为空
                     if (StringUtils.isEmpty(entName)) {
-                        LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】，sheet：【{}】，行号：【{}】，企业名称为空", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
+                        abnormalDataLogger.warn("文件：【{}】，sheet：【{}】，行号：【{}】，企业名称为空", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
                         continue;
                     }
                     // 判断企业名称是否已存在
                     if (highNewEnterMap.containsKey(entName)) {
-                        LoggerUtils.appendWarnLog(abnormalDataLogger, "文件：【{}】，sheet：【{}】，行号：【{}】，企业名称已存在", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
+                        abnormalDataLogger.warn("文件：【{}】，sheet：【{}】，行号：【{}】，企业名称已存在", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, i + 1);
                         continue;
                     }
 
@@ -106,7 +105,7 @@ public class HighNewEnterUtils {
                 }
             }
         } catch (IOException e) {
-            LoggerUtils.appendErrorLog(logger, "文件：【{}】，sheet：【{}】，cacheHighNewEnterInfo()出现异常：", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, e);
+            logger.error("文件：【{}】，sheet：【{}】，cacheHighNewEnterInfo()出现异常：", HIGH_NEW_ENTER_FILE_PATH, HIGH_NEW_ENTER_SHEET_NAME, e);
         }
     }
 

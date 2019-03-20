@@ -27,8 +27,10 @@
         SELECT
         ID,ECOTECDEVZONE,LAT_LON,UPDATE_TIME
         FROM tblBusiness
-        WHERE
-        ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>
@@ -38,12 +40,8 @@
             parameterType="com.wanfang.datacleaning.handler.model.bo.BusinessDevZoneInfoBO">
         UPDATE tblBusiness
         <set>
-            <if test="ECOTECDEVZONE != null and ECOTECDEVZONE != ''">
-                ECOTECDEVZONE = #{ecoTecDevZone},
-            </if>
-            <if test="updateTime != null">
-                UPDATE_TIME = #{updateTime},
-            </if>
+            ECOTECDEVZONE = #{ecoTecDevZone},
+            UPDATE_TIME = #{updateTime},
         </set>
         <where>
             AND ID = #{id}
@@ -55,12 +53,8 @@
         <foreach collection="list" separator=";" item="item">
             UPDATE tblBusiness
             <set>
-                <if test="ECOTECDEVZONE != null and ECOTECDEVZONE != ''">
-                    ECOTECDEVZONE = #{ecoTecDevZone},
-                </if>
-                <if test="item.updateTime != null">
-                    UPDATE_TIME = #{item.updateTime},
-                </if>
+                ECOTECDEVZONE = #{ecoTecDevZone},
+                UPDATE_TIME = #{item.updateTime},
             </set>
             <where>
                 AND ID = #{item.id}
@@ -73,8 +67,10 @@
         SELECT
         ID,PRIPID,ENTNAME,REGORG,DOM,DOMDISTRICT,PROVINCE,CITY,AREA,LAT_LON
         FROM tblBusiness
-        WHERE
-        ID <![CDATA[ > ]]> #{startIndex}
+        <where>
+            AND ID <![CDATA[ >= ]]> #{idStartPosition}
+            AND ID <![CDATA[ <= ]]> #{idEndPosition}
+        </where>
         ORDER BY ID
         LIMIT #{pageSize}
     </select>

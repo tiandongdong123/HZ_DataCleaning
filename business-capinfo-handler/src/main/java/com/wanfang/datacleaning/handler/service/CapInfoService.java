@@ -9,7 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface CapInfoService {
     /**
-     * 更新资金信息
+     * 处理资金信息
      */
-    void updateCapInfo();
+    void handleCapInfo();
 }

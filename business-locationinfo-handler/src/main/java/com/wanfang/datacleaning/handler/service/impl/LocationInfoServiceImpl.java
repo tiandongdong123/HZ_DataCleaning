@@ -1,13 +1,12 @@
 package com.wanfang.datacleaning.handler.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.wanfang.datacleaning.handler.constant.CmnConstant;
 import com.wanfang.datacleaning.handler.dao.master.TblBusinessDao;
 import com.wanfang.datacleaning.handler.model.bo.BusinessLocationInfoBO;
 import com.wanfang.datacleaning.handler.service.LocationInfoService;
 import com.wanfang.datacleaning.handler.util.PropertiesUtils;
 import com.wanfang.datacleaning.util.DateUtils;
-import com.wanfang.datacleaning.util.LoggerUtils;
+import com.wanfang.datacleaning.util.business.CmnUtils;
 import com.wanfang.datacleaning.util.gaodemap.constant.CmnEnum;
 import com.wanfang.datacleaning.util.gaodemap.geocode.GeoCodeUtils;
 import com.wanfang.datacleaning.util.gaodemap.geocode.model.GcQryParam;
@@ -15,9 +14,9 @@ import com.wanfang.datacleaning.util.gaodemap.geocode.model.GcQryResult;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,18 +36,15 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     /**
      * key
      */
-    public static final String GD_MAP_KEY = PropertiesUtils.getValue("gdMap_key");
+    private static final String GD_MAP_KEY = PropertiesUtils.getValue("gdMap_key");
     /**
      * 地理编码url
      */
-    public static final String GEOCODE_URL = PropertiesUtils.getValue("gdMap_geocode_url");
-
+    private static final String GEOCODE_URL = PropertiesUtils.getValue("gdMap_geocode_url");
     /**
      * 地理编码sig
      */
-    public static final String GEOCODE_SIG = PropertiesUtils.getValue("gdMap_geocode_sig");
-
-
+    private static final String GEOCODE_SIG = PropertiesUtils.getValue("gdMap_geocode_sig");
     /**
      * 更新位置信息成功数量
      */
@@ -58,67 +54,88 @@ public class LocationInfoServiceImpl implements LocationInfoService {
      */
     private int locInfoUpdFailCount;
 
-    @Autowired
+    @Resource
     private TblBusinessDao tblBusinessDao;
 
     @Override
-    public void updateLocationInfo() {
-
+    public void handleLocationInfo() {
         long startTime = System.currentTimeMillis();
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的位置信息开始");
+        logger.info("校验信息处理的前提条件开始");
+        boolean meetFlag = meetPrerequisite();
+        logger.info("校验信息处理的前提条件结束,校验结果为【{}】，耗时【{}】ms", meetFlag, System.currentTimeMillis() - startTime);
 
-        // 递归更新位置信息
-        updateLocationInfoByRecursion(CmnConstant.START_INDEX, CmnConstant.PAGE_SIZE);
+        if (meetFlag) {
+            startTime = System.currentTimeMillis();
+            logger.info("递归更新DB工商表的位置信息开始，id更新区间为：[{},{}]", CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION);
+            // 递归更新位置信息
+            updateLocationInfoByRecursion(CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
+            logger.info("递归更新DB工商表的位置信息结束，id更新区间为：[{},{}]，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
+                    CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION, (locInfoUpdSuccessCount + locInfoUpdFailCount),
+                    locInfoUpdSuccessCount, locInfoUpdFailCount, System.currentTimeMillis() - startTime);
+        }
 
-        LoggerUtils.appendInfoLog(logger, "递归更新DB工商表的位置信息结束，共更新【{}】条数据，成功【{}】条，失败【{}】条，总耗时【{}】ms",
-                (locInfoUpdSuccessCount + locInfoUpdFailCount), locInfoUpdSuccessCount, locInfoUpdFailCount, System.currentTimeMillis() - startTime);
+    }
 
+    /**
+     * 是否满足前提条件
+     *
+     * @return boolean true：满足
+     */
+    private boolean meetPrerequisite() {
+        // 判断更新起始、结束位置索引是否正确
+        if (CmnConstant.ID_END_POSITION <= CmnConstant.ID_START_POSITION) {
+            logger.warn("idStartPosition：【{}】，idEndPosition：【{}】，更新结束位置小于或等于更新起始位置", CmnConstant.ID_START_POSITION, CmnConstant.ID_END_POSITION);
+            return false;
+        }
+        return true;
     }
 
     /**
      * 递归更新位置信息
      *
-     * @param startIndex 起始位置
-     * @param pageSize   每页数量
+     * @param idStartPosition id起始位置
+     * @param idEndPosition   id结束位置
+     * @param pageSize        每页数量
      */
-    private void updateLocationInfoByRecursion(int startIndex, int pageSize) {
-        int pageNum = startIndex / pageSize + 1;
+    private void updateLocationInfoByRecursion(int idStartPosition, int idEndPosition, int pageSize) {
         long startTime = System.currentTimeMillis();
-        pageSize = (CmnConstant.END_INDEX - startIndex) >= pageSize ? pageSize : CmnConstant.END_INDEX - startIndex + 1;
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页位置信息开始", pageNum);
-        List<BusinessLocationInfoBO> locationInfoBOList = tblBusinessDao.getLocationInfoByPage(startIndex, pageSize);
-        LoggerUtils.appendInfoLog(logger, "查询DB工商表的第【{}】页位置信息结束,共查询到【{}】条数据，耗时【{}】ms", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+        int pageSizeLimit = CmnUtils.handlePageSize(idStartPosition, idEndPosition, pageSize);
+        logger.info("查询DB工商表的位置信息开始，idStartPosition：【{}】，pageSize：【{}】", idStartPosition, pageSize);
+        List<BusinessLocationInfoBO> locationInfoBOList = tblBusinessDao.getLocationInfoByPage(idStartPosition, idEndPosition, pageSizeLimit);
+        int qryResultSize = locationInfoBOList.size();
+        logger.info("查询DB工商表的位置信息结束，idStartPosition：【{}】，pageSize：【{}】共查询到【{}】条数据，耗时【{}】ms", idStartPosition, pageSize, qryResultSize, System.currentTimeMillis() - startTime);
+        if (locationInfoBOList.isEmpty()) {
+            return;
+        }
 
-        if (locationInfoBOList != null && locationInfoBOList.size() > 0) {
-            startTime = System.currentTimeMillis();
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页位置信息开始", pageNum);
-            List<BusinessLocationInfoBO> batchList = new LinkedList<>();
-            for (int i = 0; i < locationInfoBOList.size(); i++) {
-                batchList.add(locationInfoBOList.get(i));
-                if ((i + 1) % CmnConstant.BATCH_SIZE == 0 || i + 1 == locationInfoBOList.size()) {
-                    // 批量更新位置信息
-                    if (updateBatchLocationInfo(batchList)) {
-                        locInfoUpdSuccessCount += batchList.size();
-                    } else {
-                        locInfoUpdFailCount += batchList.size();
-                    }
-
-                    batchList = new LinkedList<>();
+        startTime = System.currentTimeMillis();
+        int lastPosition = locationInfoBOList.get(qryResultSize - 1).getId().intValue();
+        logger.info("更新DB工商表的位置信息开始，id区间为：[{},{}]", idStartPosition, lastPosition);
+        List<BusinessLocationInfoBO> batchList = new LinkedList<>();
+        for (int i = 0; i < qryResultSize; i++) {
+            batchList.add(locationInfoBOList.get(i));
+            if ((i + 1) % CmnConstant.BATCH_SIZE == 0 || i + 1 == qryResultSize) {
+                // 批量更新位置信息
+                if (updateBatchLocationInfo(batchList)) {
+                    locInfoUpdSuccessCount += batchList.size();
+                } else {
+                    locInfoUpdFailCount += batchList.size();
                 }
+                batchList = new LinkedList<>();
             }
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表的第【{}】页位置信息结束,共更新【{}】条数据，耗时【{}】ms", pageNum, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+        }
+        logger.info("更新DB工商表的位置信息结束，id区间为：[{},{}]，共更新【{}】条数据，耗时【{}】ms", idStartPosition, lastPosition, qryResultSize, System.currentTimeMillis() - startTime);
 
-            // 若查到的当前页数据数量等于每页数量，则往后再查
-            if (locationInfoBOList.size() == CmnConstant.PAGE_SIZE) {
-                updateLocationInfoByRecursion(startIndex + pageSize, CmnConstant.PAGE_SIZE);
-            }
+        // 若查到的当前页数据数量等于每页数量，则往后再查
+        if (qryResultSize == pageSize && lastPosition < idEndPosition) {
+            updateLocationInfoByRecursion(lastPosition + 1, CmnConstant.ID_END_POSITION, CmnConstant.PAGE_SIZE);
         }
     }
 
     /**
      * 处理位置信息
      *
-     * @param locationInfoBO
+     * @param locationInfoBO 位置信息
      * @return BusinessLocationInfoBO 若出现异常，则返回null
      */
     private BusinessLocationInfoBO handleLocInfo(BusinessLocationInfoBO locationInfoBO) {
@@ -139,7 +156,7 @@ public class LocationInfoServiceImpl implements LocationInfoService {
             GcQryResult qryResult = GeoCodeUtils.getGeoCode(GEOCODE_URL, qryParam);
 
             boolean meetFlag = CmnEnum.RequestStatusEnum.SUCCESS.getValue().equals(qryResult.getStatus())
-                    && qryResult.getGcGeoCodes().size() > 0 && StringUtils.isNoneEmpty(qryResult.getGcGeoCodes().get(0).getLocation());
+                    && qryResult.getGcGeoCodes().size() > 0 && StringUtils.isNotBlank(qryResult.getGcGeoCodes().get(0).getLocation());
             if (meetFlag) {
                 String[] locArray = qryResult.getGcGeoCodes().get(0).getLocation().split(CmnConstant.SEPARATOR_COMMA);
                 String locationStr = locArray[1] + CmnConstant.SEPARATOR_COMMA + locArray[0];
@@ -148,11 +165,11 @@ public class LocationInfoServiceImpl implements LocationInfoService {
                 locationInfoBO.setUpdateTime(DateUtils.getCurrentTimeStamp());
                 return locationInfoBO;
             } else {
-                LoggerUtils.appendInfoLog(logger, "locationInfoBO：【{}】，qryResult：【{}】，位置信息获取失败！", locationInfoBO, qryResult);
+                logger.error("locationInfoBO：【{}】，qryResult：【{}】，位置信息获取失败！", locationInfoBO, qryResult);
                 return null;
             }
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "locationInfoBO：【{}】，处理位置信息(handleLocInfo())出现异常：", locationInfoBO, e);
+            logger.error("locationInfoBO：【{}】，处理位置信息(handleLocInfo())出现异常：", locationInfoBO, e);
             return null;
         }
     }
@@ -160,28 +177,30 @@ public class LocationInfoServiceImpl implements LocationInfoService {
     /**
      * 批量更新位置信息
      *
-     * @param locationInfoBOList
-     * @return boolean
+     * @param locationInfoBOList 位置信息集合
+     * @return boolean true：更新成功
      */
     private boolean updateBatchLocationInfo(List<BusinessLocationInfoBO> locationInfoBOList) {
         List<BusinessLocationInfoBO> handleList = new ArrayList<>();
+        long idStartPosition = locationInfoBOList.get(0).getId();
+        long idEndPosition = locationInfoBOList.get(locationInfoBOList.size() - 1).getId();
         try {
             long startTime = System.currentTimeMillis();
             for (BusinessLocationInfoBO locationInfoBO : locationInfoBOList) {
                 locationInfoBO = handleLocInfo(locationInfoBO);
-                if (locationInfoBO != null && StringUtils.isNotEmpty(locationInfoBO.getDom())) {
+                if (locationInfoBO != null && StringUtils.isNotBlank(locationInfoBO.getDom())) {
                     handleList.add(locationInfoBO);
                 }
             }
-            LoggerUtils.appendInfoLog(logger, "处理【{}】条位置信息共耗时【{}】ms", locationInfoBOList.size(), System.currentTimeMillis() - startTime);
+            logger.info("id区间为：[{},{}]，处理位置信息【{}】条,共耗时【{}】ms", idStartPosition, idEndPosition, locationInfoBOList.size(), System.currentTimeMillis() - startTime);
             startTime = System.currentTimeMillis();
-            if (handleList.size() > 0) {
+            if (!handleList.isEmpty()) {
                 tblBusinessDao.updateBatchLocationInfoByKey(handleList);
             }
-            LoggerUtils.appendInfoLog(logger, "更新DB工商表【{}】条位置信息开始共耗时【{}】ms", handleList.size(), System.currentTimeMillis() - startTime);
+            logger.info("id区间为：[{},{}]，批量更新DB工商表位置信息【{}】条,共耗时【{}】ms", idStartPosition, idEndPosition, handleList.size(), System.currentTimeMillis() - startTime);
             return true;
         } catch (Exception e) {
-            LoggerUtils.appendErrorLog(logger, "参数：【{}】，批量更新位置信息(updateBatchLocationInfo())出现异常：", JSON.toJSONString(handleList), e);
+            logger.error("id区间为：[{},{}]，批量更新位置信息出现异常：", idStartPosition, idEndPosition, e);
             return false;
         }
     }

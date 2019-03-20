@@ -6,7 +6,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface DevZoneTestService {
     /**
-     * 查找开发去企业
+     * 查找开发区企业
      */
     void findDevZoneInfo();
 }

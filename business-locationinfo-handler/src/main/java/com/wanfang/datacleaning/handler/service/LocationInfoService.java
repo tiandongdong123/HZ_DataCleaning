@@ -9,7 +9,7 @@ package com.wanfang.datacleaning.handler.service;
  */
 public interface LocationInfoService {
     /**
-     * 更新位置信息
+     * 处理位置信息
      */
-    void updateLocationInfo();
+    void handleLocationInfo();
 }
