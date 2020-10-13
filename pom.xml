@@ -45,7 +45,7 @@
         <!--指定具体编码方式-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>2.0.2.RELEASE</spring-boot.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <common-lang3.version>3.7</common-lang3.version>
         <fastjson.version>1.2.47</fastjson.version>
         <logback.version>1.2.3</logback.version>
